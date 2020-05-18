@@ -95,7 +95,7 @@ public class NotificationMonitorService extends NotificationListenerService {
         }
         NotificationCompat.Builder nb = new NotificationCompat.Builder(this, AppConst.CHANNEL_ID);//
 
-        nb.setContentTitle("PayRecord").setTicker("PayRecord个人支付").setSmallIcon(R.mipmap.ic_launcher);
+        nb.setContentTitle("PayRecord").setTicker("PayRecord个人支付").setSmallIcon(R.drawable.ic_monetization_on_black_24dp);
         nb.setContentText("个人支付运行中.请保持此通知一直存在");
         //nb.setContent(new RemoteViews(getPackageName(),R.layout.layout));
         nb.setWhen(System.currentTimeMillis());
