@@ -40,29 +40,18 @@ import xyz.loadnl.payrecord.data.AppConst;
 import xyz.loadnl.payrecord.util.DBManager;
 
 public class MainActivity extends AppCompatActivity {
-    private final static String TRUE = "true";
-    private final static String FALSE = "false";
-    private final static String LogTag = "loadnl";
 
     private Switch swt_fuwu;
     private Switch swt_service;
     private Switch swt_mute;
-    private Button btn_qrcode;
-    private Button btn_merchant;
     private Button btn_log;
-    private TextView textView;
     private DBManager dbm;
-
-    private Handler handler;
-
-
-//    private NotificationChannel mNotificationChannel;
 
     private MainService service;
     private IMessageHander msgHander = new IMessageHander() {
         @Override
         public void handMessage(Message msg) {
-            Log.i(LogTag,msg.obj.toString());
+            Log.i(AppConst.TAG, msg.obj.toString());
         }
     };
     private ServiceConnection conn = new ServiceConnection() {
@@ -71,12 +60,12 @@ public class MainActivity extends AppCompatActivity {
             MainService.MyBinder myBinder = (MainService.MyBinder) binder;
             service = myBinder.getService();
             service.setMessageHander(msgHander);
-            Log.i(LogTag, "MainActive - onServiceConnected");
+            Log.i(AppConst.TAG, "MainActive - onServiceConnected");
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-            Log.i(LogTag, "MainActive - onServiceDisconnected");
+            Log.i(AppConst.TAG, "MainActive - onServiceDisconnected");
         }
     };
 
@@ -120,13 +109,11 @@ public class MainActivity extends AppCompatActivity {
         Log.i("ZYKJ", "mainactivity");
         setContentView(R.layout.activity_main);
 
-        swt_fuwu = (Switch)findViewById(R.id.p1);
-        swt_service = (Switch)findViewById(R.id.service);
-        swt_mute = (Switch)findViewById(R.id.mute);
+        swt_fuwu = (Switch) findViewById(R.id.p1);
+        swt_service = (Switch) findViewById(R.id.service);
+        swt_mute = (Switch) findViewById(R.id.mute);
 
-        btn_qrcode = (Button) findViewById(R.id.btn_qrcode);
-        btn_merchant = (Button)findViewById(R.id.btn_merchant);
-        btn_log = (Button)findViewById(R.id.btn_log);
+        btn_log = (Button) findViewById(R.id.btn_log);
 
         swt_service.setChecked(false);
 //        handler = new Handler(){
@@ -140,14 +127,13 @@ public class MainActivity extends AppCompatActivity {
         swt_mute.setChecked(!AppConst.PlaySounds);
 
 
-
 //        IntentFilter filter = new IntentFilter(AppConst.IntentAction);
 //        registerReceiver(receiver,filter);
 
         swt_fuwu.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(isChecked != enabedPrivileges){
+                if (isChecked != enabedPrivileges) {
                     openNotificationListenSettings();
                 }
             }
@@ -156,7 +142,7 @@ public class MainActivity extends AppCompatActivity {
         swt_service.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(isChecked){
+                if (isChecked) {
                     checkStatus();
                 }
             }
@@ -178,7 +164,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         // 静音
-        swt_mute.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener(){
+        swt_mute.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 changeMutestate(isChecked);
@@ -200,11 +186,6 @@ public class MainActivity extends AppCompatActivity {
         checkStatus();
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return super.onCreateOptionsMenu(menu);
-    }
 
 //    public boolean onOptionsItemSelected(MenuItem item) {
 //        switch (item.getItemId()) {
@@ -238,15 +219,20 @@ public class MainActivity extends AppCompatActivity {
 //        }
 //        return true;
 //    }
-    /** 退出 */
-    private void exit(){
+
+    /**
+     * 退出
+     */
+    private void exit() {
         unbindService(conn);
         disableNotificationService();
     }
-    /** 退出調用
+
+    /**
+     * 退出調用
      * 功能 Disable掉 NotificationService 直接退出App
-     * */
-    private void disableNotificationService(){
+     */
+    private void disableNotificationService() {
         // 先disable 服务
         PackageManager localPackageManager = getPackageManager();
         localPackageManager.setComponentEnabledSetting(new ComponentName(this, NotificationMonitorService.class),
@@ -255,19 +241,20 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private boolean enabedPrivileges;
-    private void checkStatus(){
+
+    private void checkStatus() {
         //权限开启.才能启动服务
         boolean enabled = isEnabled();
         enabedPrivileges = enabled;
         swt_fuwu.setChecked(enabled);
-        if(!enabled){
+        if (!enabled) {
             swt_service.setEnabled(false);
             return;
         }
         swt_service.setEnabled(true);
         //开启服务
         ComponentName name = startService(new Intent(this, NotificationMonitorService.class));
-        if(name ==null) {
+        if (name == null) {
             swt_service.setChecked(false);
             Toast.makeText(getApplicationContext(), "服务开启失败", Toast.LENGTH_LONG).show();
             return;
@@ -280,29 +267,26 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void changeMutestate(boolean ischecked){
+    private void changeMutestate(boolean ischecked) {
         AppConst.PlaySounds = !ischecked;
-        dbm.setConfig(AppConst.KeyMute,""+AppConst.PlaySounds);
+        dbm.setConfig(AppConst.KeyMute, "" + AppConst.PlaySounds);
     }
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if(keyCode == KeyEvent.KEYCODE_BACK){
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
             keyCode = KeyEvent.KEYCODE_HOME;
         }
         return super.onKeyDown(keyCode, event);
     }
 
-    private boolean isEnabled()
-    {
+    private boolean isEnabled() {
         String str = getPackageName();
         String localObject = Settings.Secure.getString(getContentResolver(), "enabled_notification_listeners");
-        if (!TextUtils.isEmpty(localObject))
-        {
+        if (!TextUtils.isEmpty(localObject)) {
             String[] strArr = (localObject).split(":");
             int i = 0;
-            while (i < strArr.length)
-            {
+            while (i < strArr.length) {
                 ComponentName localComponentName = ComponentName.unflattenFromString(strArr[i]);
                 if ((localComponentName != null) && (TextUtils.equals(str, localComponentName.getPackageName())))
                     return true;
@@ -347,8 +331,7 @@ public class MainActivity extends AppCompatActivity {
 //        Log.i("ZYKJ","MainActivity Send Notice Comp");
 //    }
 
-    private void toggleNotificationListenerService()
-    {
+    private void toggleNotificationListenerService() {
         PackageManager localPackageManager = getPackageManager();
         localPackageManager.setComponentEnabledSetting(new ComponentName(this, NotificationMonitorService.class),
                 PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
@@ -367,8 +350,7 @@ public class MainActivity extends AppCompatActivity {
     /**
      * 打开通知权限设置.一般手机根本找不到哪里设置
      */
-    private void openNotificationListenSettings()
-    {
+    private void openNotificationListenSettings() {
 
         try {
             Intent intent;

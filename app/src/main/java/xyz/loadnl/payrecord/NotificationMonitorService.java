@@ -1,6 +1,5 @@
 package xyz.loadnl.payrecord;
 
-import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -20,8 +19,6 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
 
-
-
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -33,23 +30,16 @@ import xyz.loadnl.payrecord.util.DBManager;
 
 public class NotificationMonitorService extends NotificationListenerService {
 
-    private static final String TAG = "NMService";
     private static final String AliPay = "ALIPAY";
     private static final String WeixinPay = "WXPAY";
-    private static final String JxYmf_Pay = "JXYMF";
-    private static final String JxYmf_PKG = "com.buybal.buybalpay.nxy.jxymf";
-//12-03 12:02:44.593 9737-9737/com.zhiyi.onepay I/ZYKJ: Notification posted [com.buybal.buybalpay.nxy.jxymf]:收款通知 & 一笔收款交易已完成，金额0.01元
-    private static int version;
-    //	private MyHandler handler;
+
     public long lastTimePosted = System.currentTimeMillis();
-    private Pattern pJxYmf_Nofity;
     private Pattern pAlipay;
     private Pattern pAlipay2;
     private Pattern pAlipayDianyuan;
     private Pattern pWeixin;
-    private MediaPlayer payComp;
-    private MediaPlayer payRecv;
-    private MediaPlayer payNetWorkError;
+
+    private MediaPlayer mediaPlayer;
     private PowerManager.WakeLock wakeLock;
     private DBManager dbManager;
     private BatteryReceiver batteryReceiver;
@@ -57,7 +47,7 @@ public class NotificationMonitorService extends NotificationListenerService {
 
     public void onCreate() {
         super.onCreate();
-        version = AppUtil.getVersionCode(this);
+        int version = AppUtil.getVersionCode(this);
         sendingList = new ArrayList<>();
 
         Toast.makeText(getApplicationContext(), "启动服务", Toast.LENGTH_LONG).show();
@@ -68,10 +58,9 @@ public class NotificationMonitorService extends NotificationListenerService {
         pAlipay2 = Pattern.compile(pattern);
         pAlipayDianyuan = Pattern.compile("支付宝成功收款([\\d\\.]+)元。收钱码收钱提现免费，赶紧推荐顾客使用");
         pWeixin = Pattern.compile("微信支付收款([\\d\\.]+)元");
-        pJxYmf_Nofity = Pattern.compile("一笔收款交易已完成，金额([\\d\\.]+)元");
-        payComp = MediaPlayer.create(this, R.raw.paycomp);
-        payRecv = MediaPlayer.create(this, R.raw.payrecv);
-        payNetWorkError = MediaPlayer.create(this, R.raw.networkerror);
+
+        mediaPlayer = MediaPlayer.create(this, R.raw.payrecv);
+        MediaPlayer payNetWorkError = MediaPlayer.create(this, R.raw.networkerror);
         dbManager = new DBManager(this);
 //        if (AppConst.AppId < 1) {
 //            String appid = dbManager.getConfig(AppConst.KeyAppId);
@@ -95,13 +84,13 @@ public class NotificationMonitorService extends NotificationListenerService {
         Log.i("loadnl", "Notification Monitor Service start");
 //        new Thread(this).start();
 
-        NotificationManager mNM = (NotificationManager) getSystemService(Service.NOTIFICATION_SERVICE);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && mNM != null) {
-            NotificationChannel mNotificationChannel = mNM.getNotificationChannel(AppConst.CHANNEL_ID);
-            if (mNotificationChannel == null) {
-                mNotificationChannel = new NotificationChannel(AppConst.CHANNEL_ID, "payRecord", NotificationManager.IMPORTANCE_DEFAULT);
-                mNotificationChannel.setDescription("个人支付的监控");
-                mNM.createNotificationChannel(mNotificationChannel);
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Service.NOTIFICATION_SERVICE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && notificationManager != null) {
+            NotificationChannel notificationChannel = notificationManager.getNotificationChannel(AppConst.CHANNEL_ID);
+            if (notificationChannel == null) {
+                notificationChannel = new NotificationChannel(AppConst.CHANNEL_ID, "payRecord", NotificationManager.IMPORTANCE_DEFAULT);
+                notificationChannel.setDescription("个人支付的监控");
+                notificationManager.createNotificationChannel(notificationChannel);
             }
         }
         NotificationCompat.Builder nb = new NotificationCompat.Builder(this, AppConst.CHANNEL_ID);//
@@ -117,14 +106,12 @@ public class NotificationMonitorService extends NotificationListenerService {
         //保持cpu一直运行，不管屏幕是否黑屏
         if (pm != null && wakeLock == null) {
             wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, this.getClass().getCanonicalName());
-            wakeLock.acquire();
+            wakeLock.acquire(7 * 24 * 60 * 60 * 1000L /*10 minutes*/);
         }
 
         IntentFilter intentFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
-         batteryReceiver = new BatteryReceiver();
+        batteryReceiver = new BatteryReceiver();
         registerReceiver(batteryReceiver, intentFilter);
-
-
     }
 
 
@@ -144,29 +131,27 @@ public class NotificationMonitorService extends NotificationListenerService {
         Bundle bundle = sbn.getNotification().extras;
         String pkgName = sbn.getPackageName();
         if (getPackageName().equals(pkgName)) {
-            //测试成功
-            Log.e(TAG,"测试成功");
-            Log.i(TAG, "测试成功");
+            Log.i(AppConst.TAG, "测试成功");
             Intent intent = new Intent();
             intent.setAction(AppConst.IntentAction);
             Uri uri = new Uri.Builder().scheme("app").path("log").query("msg=测试成功").build();
             intent.setData(uri);
             sendBroadcast(intent);
             //payRecv.start();
-            playMedia(payRecv);
+            playMedia(mediaPlayer);
             return;
         }
         String title = bundle.getString("android.title");
         String text = bundle.getString("android.text");
-        Log.d(TAG, "Notification posted [" + pkgName + "]:" + title + " & " + text);
-        if(text == null){
+        Log.d(AppConst.TAG, "Notification posted [" + pkgName + "]:" + title + " & " + text);
+        if (TextUtils.isEmpty(text)) {
             //没有消息.
             return;
         }
         this.lastTimePosted = System.currentTimeMillis();
         //支付宝com.eg.android.AlipayGphone
         //com.eg.android.AlipayGphone]:支付宝通知 & 新哥通过扫码向你付款0.01元
-        if (pkgName.equals("com.eg.android.AlipayGphone") && text != null) {
+        if (pkgName.equals("com.eg.android.AlipayGphone")) {
             // 现在创建 matcher 对象
             do {
                 Matcher m = pAlipay.matcher(text);
@@ -188,7 +173,7 @@ public class NotificationMonitorService extends NotificationListenerService {
                     postMethod(AliPay, money, "支付宝-店员", true);
                     break;
                 }
-                Log.w(TAG, "匹配失败" + text);
+                Log.w(AppConst.TAG, "匹配失败" + text);
             } while (false);
         }
         //微信
@@ -200,13 +185,6 @@ public class NotificationMonitorService extends NotificationListenerService {
                 String uname = "微信用户";
                 String money = m.group(1);
                 postMethod(WeixinPay, money, uname, false);
-            }
-        }else if(pkgName.equals(JxYmf_PKG)){
-            Matcher m = pJxYmf_Nofity.matcher(text);
-            if(m.find()){
-                String uname = "一码付";
-                String money = m.group(1);
-                postMethod(JxYmf_Pay, money, uname, false);
             }
         }
     }
@@ -255,7 +233,7 @@ public class NotificationMonitorService extends NotificationListenerService {
             String pkgName = paramStatusBarNotification.getPackageName();
             String title = localObject.getString("android.title");
             String text = (localObject).getString("android.text");
-            Log.e(TAG, "Notification removed [" + pkgName + "]:" + title + " & " + text);
+            Log.e(AppConst.TAG, "Notification removed [" + pkgName + "]:" + title + " & " + text);
         }
     }
 
@@ -274,7 +252,7 @@ public class NotificationMonitorService extends NotificationListenerService {
      */
     public void postMethod(final String payType, final String money, final String username, boolean dianYuan) {
         dbManager.addLog("new order:" + payType + "," + money + "," + username, 101);
-        playMedia(payRecv);
+        playMedia(mediaPlayer);
 //        String app_id = "" + AppConst.AppId;
 //        String rndStr = AppUtil.randString(16);
 //        OrderData data = new OrderData(payType, money, username, dianYuan);

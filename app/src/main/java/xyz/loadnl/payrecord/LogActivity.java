@@ -42,11 +42,11 @@ public class LogActivity extends AppCompatActivity {
 
     private void updateText(LogItem data, View view){
         TextView textView = view.findViewById(R.id.text_id);
-        textView.setText(""+data.id);
+        textView.setText(data.id);
         textView = view.findViewById(R.id.text_create_dt);
         textView.setText(data.create_dt);
         textView = view.findViewById(R.id.text_type);
-        textView.setText(""+data.log_type);
+        textView.setText(data.log_type);
         textView = view.findViewById(R.id.text_value);
         textView.setText(data.log_value);
     }

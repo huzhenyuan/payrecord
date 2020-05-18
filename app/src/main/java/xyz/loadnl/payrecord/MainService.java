@@ -24,20 +24,17 @@ import xyz.loadnl.payrecord.data.AppConst;
  * 后台进程.确保进入后台也在运行
  */
 public class MainService extends Service implements Runnable, MediaPlayer.OnCompletionListener {
-    private Handler handler;
     private IMessageHander msgHander;
     private MediaPlayer payComp;
     private PowerManager.WakeLock wakeLock;
-    public static final String CHANNEL_ID          = "zhi_yi_px_pay";
     private NotificationChannel mNotificationChannel;
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.i("ZYKJ", "mainactivity");
-        handler = new Handler(getMainLooper()){
+        Handler handler = new Handler(getMainLooper()) {
             @Override
             public void handleMessage(Message msg) {
-                if(msgHander!=null){
+                if (msgHander != null) {
                     msgHander.handMessage(msg);
                 }
             }
