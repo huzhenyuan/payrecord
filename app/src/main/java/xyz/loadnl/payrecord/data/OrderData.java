@@ -1,20 +1,49 @@
 package xyz.loadnl.payrecord.data;
 
 
+import org.greenrobot.greendao.annotation.Entity;
+import org.greenrobot.greendao.annotation.Id;
+import org.greenrobot.greendao.annotation.Generated;
 
+@Entity
 public class OrderData {
-    public String payType;
-    public String username;
+    @Id(autoincrement = true)
+    public Long id;
+    public String depositor;
     public String money;
-    public String sign;
-    public String ranStr;
-    public int dianYuan;
     public long time;
-    public OrderData(final String payType, final String money, final String username, boolean dianYuan){
-        this.payType = payType;
-        this.username = username;
+    @Generated(hash = 1719309114)
+    public OrderData(Long id, String depositor, String money, long time) {
+        this.id = id;
+        this.depositor = depositor;
         this.money = money;
-        this.dianYuan = dianYuan?1:0;
-        time = System.currentTimeMillis()/1000 - AppConst.DetaTime;
+        this.time = time;
+    }
+    @Generated(hash = 863401038)
+    public OrderData() {
+    }
+    public Long getId() {
+        return this.id;
+    }
+    public void setId(Long id) {
+        this.id = id;
+    }
+    public String getDepositor() {
+        return this.depositor;
+    }
+    public void setDepositor(String depositor) {
+        this.depositor = depositor;
+    }
+    public String getMoney() {
+        return this.money;
+    }
+    public void setMoney(String money) {
+        this.money = money;
+    }
+    public long getTime() {
+        return this.time;
+    }
+    public void setTime(long time) {
+        this.time = time;
     }
 }

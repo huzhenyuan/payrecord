@@ -8,7 +8,7 @@
     tools:context="xyz.loadnl.payrecord.MainActivity">
 
     <Switch
-        android:id="@+id/p1"
+        android:id="@+id/notification_switch"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="30dp"
@@ -17,7 +17,7 @@
         android:textOn="@string/textOn" />
 
     <Switch
-        android:id="@+id/service"
+        android:id="@+id/pay_service_switch"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="30dp"
@@ -25,14 +25,14 @@
         android:textOff="@string/textOff"
         android:textOn="@string/textOn" />
 
-    <Switch
-        android:id="@+id/mute"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="30dp"
-        android:text="@string/action_to_mute"
-        android:textOff="@string/textOff"
-        android:textOn="@string/textOn" />
+<!--    <Switch-->
+<!--        android:id="@+id/mute_switch"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:padding="30dp"-->
+<!--        android:text="@string/action_to_mute"-->
+<!--        android:textOff="@string/textOff"-->
+<!--        android:textOn="@string/textOn" />-->
 
     <Button
         android:id="@+id/btn_log"
@@ -43,6 +43,13 @@
         android:text="@string/action_to_log"
         android:textStyle="bold" />
 
+    <TextView
+        android:id="@+id/tv_device_id"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="30dp"
+        android:lineSpacingExtra="4sp"
+        android:textAlignment="viewStart" />
 
     <TextView
         android:layout_width="match_parent"

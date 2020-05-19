@@ -6,7 +6,6 @@ import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
@@ -19,14 +18,22 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
 
-import java.util.ArrayList;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import xyz.loadnl.payrecord.data.AppConst;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+import okio.BufferedSource;
+import xyz.loadnl.payrecord.data.DaoMaster;
 import xyz.loadnl.payrecord.data.OrderData;
 import xyz.loadnl.payrecord.util.AppUtil;
-import xyz.loadnl.payrecord.util.DBManager;
 
 public class NotificationMonitorService extends NotificationListenerService {
 
@@ -35,54 +42,26 @@ public class NotificationMonitorService extends NotificationListenerService {
 
     public long lastTimePosted = System.currentTimeMillis();
     private Pattern pAlipay;
-    private Pattern pAlipay2;
-    private Pattern pAlipayDianyuan;
-    private Pattern pWeixin;
 
     private MediaPlayer mediaPlayer;
     private PowerManager.WakeLock wakeLock;
-    private DBManager dbManager;
-    private BatteryReceiver batteryReceiver;
+    private DaoMaster.DevOpenHelper helper;
+    private DaoMaster daoMaster;
 
 
     public void onCreate() {
         super.onCreate();
         int version = AppUtil.getVersionCode(this);
-        sendingList = new ArrayList<>();
 
         Toast.makeText(getApplicationContext(), "启动服务", Toast.LENGTH_LONG).show();
         //支付宝
         String pattern = "(\\S*)通过扫码向你付款([\\d\\.]+)元";
         pAlipay = Pattern.compile(pattern);
-        pattern = "成功收款([\\d\\.]+)元。享免费提现等更多专属服务，点击查看";
-        pAlipay2 = Pattern.compile(pattern);
-        pAlipayDianyuan = Pattern.compile("支付宝成功收款([\\d\\.]+)元。收钱码收钱提现免费，赶紧推荐顾客使用");
-        pWeixin = Pattern.compile("微信支付收款([\\d\\.]+)元");
 
         mediaPlayer = MediaPlayer.create(this, R.raw.payrecv);
         MediaPlayer payNetWorkError = MediaPlayer.create(this, R.raw.networkerror);
-        dbManager = new DBManager(this);
-//        if (AppConst.AppId < 1) {
-//            String appid = dbManager.getConfig(AppConst.KeyAppId);
-//            if (!TextUtils.isEmpty(appid)) {
-//                AppConst.AppId = Integer.parseInt(appid);
-//                String token = dbManager.getConfig(AppConst.KeyToken);
-//                if (!TextUtils.isEmpty(token)) {
-//                    AppConst.Token = token;
-//                }
-//                String secret = dbManager.getConfig(AppConst.KeySecret);
-//                if (!TextUtils.isEmpty(secret)) {
-//                    AppConst.Secret = secret;
-//                }
-//            }
-//            // 推送前判断下playSounds
-//            String mute = dbManager.getConfig(AppConst.KeyMute);
-//            if(!TextUtils.isEmpty(mute)){
-//                AppConst.PlaySounds = Boolean.parseBoolean(mute);
-//            }
-//        }
-        Log.i("loadnl", "Notification Monitor Service start");
-//        new Thread(this).start();
+
+        Log.i(AppConst.TAG, "Notification Monitor Service start");
 
         NotificationManager notificationManager = (NotificationManager) getSystemService(Service.NOTIFICATION_SERVICE);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && notificationManager != null) {
@@ -97,7 +76,6 @@ public class NotificationMonitorService extends NotificationListenerService {
 
         nb.setContentTitle("PayRecord").setTicker("PayRecord个人支付").setSmallIcon(R.drawable.ic_monetization_on_black_24dp);
         nb.setContentText("个人支付运行中.请保持此通知一直存在");
-        //nb.setContent(new RemoteViews(getPackageName(),R.layout.layout));
         nb.setWhen(System.currentTimeMillis());
         Notification notification = nb.build();
         startForeground(1, notification);
@@ -109,9 +87,10 @@ public class NotificationMonitorService extends NotificationListenerService {
             wakeLock.acquire(7 * 24 * 60 * 60 * 1000L /*10 minutes*/);
         }
 
-        IntentFilter intentFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
-        batteryReceiver = new BatteryReceiver();
-        registerReceiver(batteryReceiver, intentFilter);
+
+
+        helper = new DaoMaster.DevOpenHelper(this, AppConst.DB_NAME, null);
+        daoMaster = new DaoMaster(helper.getWritableDatabase());
     }
 
 
@@ -123,7 +102,6 @@ public class NotificationMonitorService extends NotificationListenerService {
         Intent localIntent = new Intent();
         localIntent.setClass(this, NotificationMonitorService.class);
         startService(localIntent);
-        unregisterReceiver(batteryReceiver);
     }
 
 
@@ -137,7 +115,6 @@ public class NotificationMonitorService extends NotificationListenerService {
             Uri uri = new Uri.Builder().scheme("app").path("log").query("msg=测试成功").build();
             intent.setData(uri);
             sendBroadcast(intent);
-            //payRecv.start();
             playMedia(mediaPlayer);
             return;
         }
@@ -149,43 +126,17 @@ public class NotificationMonitorService extends NotificationListenerService {
             return;
         }
         this.lastTimePosted = System.currentTimeMillis();
-        //支付宝com.eg.android.AlipayGphone
-        //com.eg.android.AlipayGphone]:支付宝通知 & 新哥通过扫码向你付款0.01元
         if (pkgName.equals("com.eg.android.AlipayGphone")) {
-            // 现在创建 matcher 对象
             do {
                 Matcher m = pAlipay.matcher(text);
                 if (m.find()) {
                     String uname = m.group(1);
                     String money = m.group(2);
-                    postMethod(AliPay, money, uname, false);
-                    break;
-                }
-                m = pAlipay2.matcher(text);
-                if (m.find()) {
-                    String money = m.group(1);
-                    postMethod(AliPay, money, "支付宝用户", false);
-                    break;
-                }
-                m = pAlipayDianyuan.matcher(text);
-                if (m.find()) {
-                    String money = m.group(1);
-                    postMethod(AliPay, money, "支付宝-店员", true);
+                    postMethod(money, uname);
                     break;
                 }
                 Log.w(AppConst.TAG, "匹配失败" + text);
             } while (false);
-        }
-        //微信
-        //com.tencent.mm]:微信支付 & 微信支付收款0.01元
-        else if (pkgName.equals("com.tencent.mm") && text != null) {
-            // 现在创建 matcher 对象
-            Matcher m = pWeixin.matcher(text);
-            if (m.find()) {
-                String uname = "微信用户";
-                String money = m.group(1);
-                postMethod(WeixinPay, money, uname, false);
-            }
         }
     }
 
@@ -241,114 +192,45 @@ public class NotificationMonitorService extends NotificationListenerService {
         return START_NOT_STICKY;
     }
 
-    private ArrayList<OrderData> sendingList;
-
-    /**
-     * 获取道的支付通知发送到服务器
-     *
-     * @param payType  支付方式
-     * @param money    支付金额
-     * @param username 支付者名字
-     */
-    public void postMethod(final String payType, final String money, final String username, boolean dianYuan) {
-        dbManager.addLog("new order:" + payType + "," + money + "," + username, 101);
+    public void postMethod(final String money, final String depositor) {
         playMedia(mediaPlayer);
-//        String app_id = "" + AppConst.AppId;
-//        String rndStr = AppUtil.randString(16);
-//        OrderData data = new OrderData(payType, money, username, dianYuan);
-//        String sign = AppUtil.toMD5(app_id + AppConst.Secret + data.time + version + rndStr + payType + money + username);
-//        data.sign = sign;
-//        data.ranStr = rndStr;
-//        postMethod(data);
+        OrderData orderData = new OrderData();
+        orderData.setDepositor(depositor);
+        orderData.setMoney(money);
+        orderData.setTime(System.currentTimeMillis());
+        daoMaster.newSession().getOrderDataDao().insert(orderData);
+
+        OkHttpClient client = new OkHttpClient().newBuilder()
+                .build();
+        MediaType mediaType = MediaType.parse("application/json");
+
+        JSONObject approvalJson = new JSONObject();
+        try {
+            // TODO 签名
+            // TODO 订单应当先从服务器获取到与当前IMEI相应的订单
+            approvalJson.put("currentAccountId", AppConst.MEMBER_ID);
+            approvalJson.put("id", AppConst.MEMBER_ID);
+            approvalJson.put("actualPayAmount", AppConst.MEMBER_ID);
+            approvalJson.put("approvalResult", AppConst.MEMBER_ID);
+            approvalJson.put("deviceImei", AppConst.MEMBER_ID);
+            approvalJson.put("signature", AppConst.MEMBER_ID);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        RequestBody body = RequestBody.create(mediaType, approvalJson.toString());
+        Request request = new Request.Builder()
+                .url("http://127.0.0.1:8083/recharge/approval")
+                .method("POST", body)
+                .addHeader("Content-Type", "application/json")
+                .build();
+        Response response = null;
+        try {
+            response = client.newCall(request).execute();
+            String responseString = response.body().string();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
-
-//    private void postMethod(final OrderData data) {
-//        if (data == null) {
-//            return;
-//        }
-//        RequestUtils.getRequest(AppConst.HostUrl + "person/notify/pay?type=" + data.payType
-//                        + "&money=" + data.money
-//                        + "&uname=" + data.username
-//                        + "&appid=" + "" + AppConst.AppId
-//                        + "&rndstr=" + data.ranStr
-//                        + "&sign=" + data.sign
-//                        + "&time=" + data.time
-//                        + "&dianyuan=" + data.dianYuan
-//                        + "&version=" + version
-//                , new IHttpResponse() {
-//                    @Override
-//                    public void OnHttpData(String data) {
-//                        dbManager.addLog(data, 200);
-//                        handleMessage(data, 1);
-//                    }
-//
-//                    @Override
-//                    public void OnHttpDataError(IOException e) {
-//                        dbManager.addLog("http error," + e.getMessage(), 500);
-//                        sendingList.add(data);
-//                    }
-//                });
-//
-//    }
-
-    private long lastSendTime;
-
-    /**
-     * 发送错误信息到服务器
-     */
-//    public void postState() {
-//        lastSendTime = System.currentTimeMillis();
-//        Log.d(AppConst.TAG_LOG, "发送在线信息");
-//        RequestUtils.getRequest(AppConst.authUrl("person/state/online") + "&v=" + AppConst.version + "&b=" + AppConst.Battery, new IHttpResponse() {
-//            @Override
-//            public void OnHttpData(String data) {
-//                handleMessage(data, 3);
-//            }
-//
-//            @Override
-//            public void OnHttpDataError(IOException e) {
-//                Log.w(AppConst.TAG_LOG,e);
-//            }
-//        });
-//
-//    }
-
-
-    private long lastNetTime;
-
-//    public boolean handleMessage(String message, int arg1) {
-//        lastNetTime = System.currentTimeMillis();
-//        if (message == null || message.isEmpty()) {
-//            return true;
-//        }
-//        String msg = message;
-//        Log.i(AppConst.TAG_LOG, msg);
-//        JSONObject json;
-//        try {
-//            json = new JSONObject(msg);
-//
-//            if (json.getInt("code") != 0) {
-//                String emsg = json.getString("msg");
-//                Log.w(AppConst.TAG_LOG, emsg);
-//                return false;
-//            }
-//            if (json.has("time")) {
-//                int time = json.getInt("time");
-//                int dt = (int) (System.currentTimeMillis() / 1000) - time;
-//                AppConst.DetaTime = (dt + AppConst.DetaTime * 9) / 10;
-//                Log.d(AppConst.TAG_LOG, "服务器时间差" + AppConst.DetaTime);
-//            }
-//            if (arg1 == 3) {
-//                return true;
-//            }
-//            playMedia(payComp);
-//
-//        } catch (JSONException e) {
-//            Log.w(AppConst.TAG_LOG, e);
-//        }
-//
-//        return true;
-//    }
 
     private void playMedia(MediaPlayer media) {
         if (AppConst.PlaySounds) {

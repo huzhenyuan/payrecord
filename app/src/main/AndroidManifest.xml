@@ -44,11 +44,6 @@
                 <action android:name="android.service.notification.NotificationListenerService" />
             </intent-filter>
         </service>
-        <service
-            android:name=".MainService"
-            android:enabled="true"
-            android:exported="false"
-            android:label="支付服务" />
 
         <activity
             android:name=".LogActivity"

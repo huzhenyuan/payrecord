@@ -6,48 +6,54 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 
-
-import java.util.ArrayList;
-
-import xyz.loadnl.payrecord.data.LogItem;
-import xyz.loadnl.payrecord.util.DBManager;
+import xyz.loadnl.payrecord.data.DaoMaster;
+import xyz.loadnl.payrecord.data.OrderData;
 
 public class LogActivity extends AppCompatActivity {
     private LinearLayout container;
+
+    private DaoMaster.DevOpenHelper helper;
+    private DaoMaster daoMaster;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_log);
         container = findViewById(R.id.log_container);
+        helper = new DaoMaster.DevOpenHelper(this, AppConst.DB_NAME, null);
+        daoMaster = new DaoMaster(helper.getWritableDatabase());
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         container.removeAllViews();
-        AddLogItem();
+        addLogItem();
     }
 
-    private void AddLogItem(){
-        DBManager db = new DBManager(this);
-        ArrayList<LogItem> list = db.getLogList(0,0);
-        for (LogItem item:list) {
+    private void addLogItem() {
+        List<OrderData> orderData = daoMaster.newSession().getOrderDataDao().loadAll();
+        for (OrderData orderDatum : orderData) {
             View view = View.inflate(this, R.layout.sample_log_item_comp, null);
-            updateText(item,view);
+            updateText(orderDatum, view);
             container.addView(view);
         }
     }
 
-    private void updateText(LogItem data, View view){
+    private void updateText(OrderData data, View view) {
         TextView textView = view.findViewById(R.id.text_id);
-        textView.setText(data.id);
-        textView = view.findViewById(R.id.text_create_dt);
-        textView.setText(data.create_dt);
-        textView = view.findViewById(R.id.text_type);
-        textView.setText(data.log_type);
-        textView = view.findViewById(R.id.text_value);
-        textView.setText(data.log_value);
+        textView.setText(String.valueOf(data.getId()));
+        textView = view.findViewById(R.id.text_time);
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.CHINA);
+        textView.setText(sdf.format(new Date(data.getTime())));
+        textView = view.findViewById(R.id.text_depositor);
+        textView.setText(data.getDepositor());
+        textView = view.findViewById(R.id.text_money);
+        textView.setText(data.getMoney());
     }
 }
