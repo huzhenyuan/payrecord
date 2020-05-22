@@ -105,6 +105,15 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        Intent startIntent = new Intent(this, AlarmService.class);
+        startService(startIntent);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Intent stopIntent = new Intent(this, AlarmService.class);
+        stopService(stopIntent);
     }
 
     @Override

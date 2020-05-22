@@ -50,7 +50,7 @@ public class LogActivity extends AppCompatActivity {
         textView.setText(String.valueOf(data.getId()));
         textView = view.findViewById(R.id.text_time);
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.CHINA);
-        textView.setText(sdf.format(new Date(data.getTime())));
+        textView.setText(sdf.format(new Date(data.getCreate())));
         textView = view.findViewById(R.id.text_depositor);
         textView.setText(data.getDepositor());
         textView = view.findViewById(R.id.text_money);
