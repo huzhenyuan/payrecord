@@ -34,6 +34,7 @@ import okio.BufferedSource;
 import xyz.loadnl.payrecord.data.DaoMaster;
 import xyz.loadnl.payrecord.data.OrderData;
 import xyz.loadnl.payrecord.util.AppUtil;
+import xyz.loadnl.payrecord.util.CryptoUtil;
 
 public class NotificationMonitorService extends NotificationListenerService {
 
@@ -210,9 +211,15 @@ public class NotificationMonitorService extends NotificationListenerService {
             // TODO 订单应当先从服务器获取到与当前IMEI相应的订单
             approvalJson.put("currentAccountId", AppConst.MEMBER_ID);
             approvalJson.put("id", AppConst.MEMBER_ID);
-            approvalJson.put("actualPayAmount", AppConst.MEMBER_ID);
-            approvalJson.put("approvalResult", AppConst.MEMBER_ID);
-            approvalJson.put("deviceImei", AppConst.MEMBER_ID);
+            approvalJson.put("actualPayAmount", money);
+            approvalJson.put("approvalResult", "2");
+            approvalJson.put("deviceImei", AppUtil.getImei());
+
+            String content = approvalJson.toString();
+            String signature = CryptoUtil.sign(AppConst.PRIVATE_KEY, content);
+
+            approvalJson.put("signature", signature);
+
             approvalJson.put("signature", AppConst.MEMBER_ID);
         } catch (JSONException e) {
             e.printStackTrace();

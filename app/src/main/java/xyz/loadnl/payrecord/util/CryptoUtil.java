@@ -71,6 +71,7 @@ public class CryptoUtil {
     }
 
     public static void main(String[] args) {
+        genKey();
         System.out.println(sign("3F692D2FBEFD561C047F1CA1B74424CDE9BEA1ADBFF505F8BA39462B743FA191",
                 "1259500420884070400"));
     }

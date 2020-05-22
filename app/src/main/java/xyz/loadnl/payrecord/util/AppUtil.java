@@ -48,4 +48,8 @@ public class AppUtil {
         // 最终会得到这样的一串ID：00000000-28ee-3eab-ffff-ffffe9374e72
 
     }
+
+    public static boolean getImei() {
+        return false;
+    }
 }

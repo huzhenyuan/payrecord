@@ -33,7 +33,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         AppUtil.initDeviceId(this);
 
-
         TextView tv_device_id = findViewById(R.id.tv_device_id);
         tv_device_id.setText(getString(R.string.device_id) + AppUtil.getDeviceId());
 
