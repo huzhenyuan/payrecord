@@ -25,14 +25,14 @@
         android:textOff="@string/textOff"
         android:textOn="@string/textOn" />
 
-<!--    <Switch-->
-<!--        android:id="@+id/mute_switch"-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:padding="30dp"-->
-<!--        android:text="@string/action_to_mute"-->
-<!--        android:textOff="@string/textOff"-->
-<!--        android:textOn="@string/textOn" />-->
+    <!--    <Switch-->
+    <!--        android:id="@+id/mute_switch"-->
+    <!--        android:layout_width="match_parent"-->
+    <!--        android:layout_height="wrap_content"-->
+    <!--        android:padding="30dp"-->
+    <!--        android:text="@string/action_to_mute"-->
+    <!--        android:textOff="@string/textOff"-->
+    <!--        android:textOn="@string/textOn" />-->
 
     <Button
         android:id="@+id/btn_log"
@@ -43,13 +43,22 @@
         android:text="@string/action_to_log"
         android:textStyle="bold" />
 
-    <TextView
-        android:id="@+id/tv_device_id"
+    <EditText
+        android:id="@+id/tv_device_imei"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="30dp"
-        android:lineSpacingExtra="4sp"
-        android:textAlignment="viewStart" />
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        android:hint="请输入IMEI" />
+
+    <Button
+        android:id="@+id/btn_imei"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        android:text="保存IMEI"
+        android:textStyle="bold" />
 
     <TextView
         android:layout_width="match_parent"

@@ -1,7 +1,9 @@
 package xyz.loadnl.payrecord;
 
 public class AppConst {
+
     public static final String TAG = "HZY";
+    public static final String SERVER = "http://192.168.43.148:8083/";
 
     public static boolean PlaySounds = true;
     public static final String CHANNEL_ID = "ID";
@@ -14,5 +16,6 @@ public class AppConst {
     public static final String MEMBER_ID = "1254448435801620480";
 
 
+    public static final String IMEI_KEY = "IMEI";
 
 }

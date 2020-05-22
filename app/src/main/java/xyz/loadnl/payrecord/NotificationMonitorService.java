@@ -1,5 +1,6 @@
 package xyz.loadnl.payrecord;
 
+import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -22,6 +23,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,16 +32,16 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-import okio.BufferedSource;
 import xyz.loadnl.payrecord.data.DaoMaster;
 import xyz.loadnl.payrecord.data.OrderData;
+import xyz.loadnl.payrecord.data.OrderDataDao;
 import xyz.loadnl.payrecord.util.AppUtil;
 import xyz.loadnl.payrecord.util.CryptoUtil;
 
+import static xyz.loadnl.payrecord.AppConst.SERVER;
+
 public class NotificationMonitorService extends NotificationListenerService {
 
-    private static final String AliPay = "ALIPAY";
-    private static final String WeixinPay = "WXPAY";
 
     public long lastTimePosted = System.currentTimeMillis();
     private Pattern pAlipay;
@@ -88,10 +90,10 @@ public class NotificationMonitorService extends NotificationListenerService {
             wakeLock.acquire(7 * 24 * 60 * 60 * 1000L /*10 minutes*/);
         }
 
-
-
         helper = new DaoMaster.DevOpenHelper(this, AppConst.DB_NAME, null);
         daoMaster = new DaoMaster(helper.getWritableDatabase());
+
+        AlarmManager alarmManager=(AlarmManager)getSystemService(Service.ALARM_SERVICE);
     }
 
 
@@ -105,7 +107,7 @@ public class NotificationMonitorService extends NotificationListenerService {
         startService(localIntent);
     }
 
-
+    @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
         Bundle bundle = sbn.getNotification().extras;
         String pkgName = sbn.getPackageName();
@@ -194,23 +196,32 @@ public class NotificationMonitorService extends NotificationListenerService {
     }
 
     public void postMethod(final String money, final String depositor) {
+        //收到支付成功的系统通知后，找到本地记录的未完成的充值订单，把订单的状态修改了
+        List<OrderData> list = daoMaster.newSession().getOrderDataDao().queryBuilder()
+                .where(OrderDataDao.Properties.Status.eq(0))
+                .where(OrderDataDao.Properties.Depositor.eq(depositor))
+                .where(OrderDataDao.Properties.Money.eq(money)).build().list();
+        if (list.isEmpty()) {
+            return;
+        }
+        String orderId = list.get(0).getOrderId();
+
         playMedia(mediaPlayer);
         OrderData orderData = new OrderData();
         orderData.setDepositor(depositor);
         orderData.setMoney(money);
-        orderData.setTime(System.currentTimeMillis());
+        orderData.setUpdate(System.currentTimeMillis());
         daoMaster.newSession().getOrderDataDao().insert(orderData);
 
         OkHttpClient client = new OkHttpClient().newBuilder()
                 .build();
         MediaType mediaType = MediaType.parse("application/json");
 
+
         JSONObject approvalJson = new JSONObject();
         try {
-            // TODO 签名
-            // TODO 订单应当先从服务器获取到与当前IMEI相应的订单
             approvalJson.put("currentAccountId", AppConst.MEMBER_ID);
-            approvalJson.put("id", AppConst.MEMBER_ID);
+            approvalJson.put("id", orderId);
             approvalJson.put("actualPayAmount", money);
             approvalJson.put("approvalResult", "2");
             approvalJson.put("deviceImei", AppUtil.getImei());
@@ -219,14 +230,12 @@ public class NotificationMonitorService extends NotificationListenerService {
             String signature = CryptoUtil.sign(AppConst.PRIVATE_KEY, content);
 
             approvalJson.put("signature", signature);
-
-            approvalJson.put("signature", AppConst.MEMBER_ID);
         } catch (JSONException e) {
             e.printStackTrace();
         }
         RequestBody body = RequestBody.create(mediaType, approvalJson.toString());
         Request request = new Request.Builder()
-                .url("http://127.0.0.1:8083/recharge/approval")
+                .url(SERVER + "recharge/approval")
                 .method("POST", body)
                 .addHeader("Content-Type", "application/json")
                 .build();
@@ -234,6 +243,7 @@ public class NotificationMonitorService extends NotificationListenerService {
         try {
             response = client.newCall(request).execute();
             String responseString = response.body().string();
+            Log.i(AppConst.TAG, "提交收款信息结果：" + responseString);
         } catch (IOException e) {
             e.printStackTrace();
         }

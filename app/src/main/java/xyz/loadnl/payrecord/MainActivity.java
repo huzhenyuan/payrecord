@@ -16,25 +16,42 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+
+import java.util.List;
+
+import xyz.loadnl.payrecord.data.DaoMaster;
+import xyz.loadnl.payrecord.data.PhoneData;
 import xyz.loadnl.payrecord.util.AppUtil;
 
 public class MainActivity extends AppCompatActivity {
 
     private Switch notification_switch;
     private Switch payService_switch;
-    private TextView tv_device_id;
+    private TextView tv_device_imei;
+    private Button btn_imei;
 
-    public MainActivity() {
+    private DaoMaster.DevOpenHelper helper;
+    private DaoMaster daoMaster;
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onHandleEvent(MessageEvent messageEvent) {
+        if (messageEvent.isHasImei()) {
+            btn_imei.setVisibility(View.GONE);
+            tv_device_imei.setEnabled(false);
+            tv_device_imei.setText(messageEvent.getMessage());
+            AppUtil.setImei(messageEvent.getMessage());
+        } else {
+            Toast.makeText(this, "请设置IMEI", Toast.LENGTH_LONG).show();
+        }
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        AppUtil.initDeviceId(this);
-
-        TextView tv_device_id = findViewById(R.id.tv_device_id);
-        tv_device_id.setText(getString(R.string.device_id) + AppUtil.getDeviceId());
 
 
         notification_switch = findViewById(R.id.notification_switch);
@@ -72,12 +89,44 @@ public class MainActivity extends AppCompatActivity {
 
         checkStatus();
 
+        tv_device_imei = findViewById(R.id.tv_device_imei);
+        btn_imei = findViewById(R.id.btn_imei);
+        btn_imei.setOnClickListener(view -> {
+            if (!TextUtils.isEmpty(tv_device_imei.getText())) {
+                PhoneData phoneData = new PhoneData();
+                phoneData.setK(AppConst.IMEI_KEY);
+                phoneData.setV(tv_device_imei.getText().toString());
+                daoMaster.newSession().getPhoneDataDao().insert(phoneData);
+
+                MessageEvent event = new MessageEvent();
+                event.setHasImei(true);
+                event.setMessage(tv_device_imei.getText().toString());
+                EventBus.getDefault().post(event);
+            }
+        });
+
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         checkStatus();
+        EventBus.getDefault().register(this);
+        new Thread(() -> {
+
+            helper = new DaoMaster.DevOpenHelper(this, AppConst.DB_NAME, null);
+            daoMaster = new DaoMaster(helper.getWritableDatabase());
+
+            List<PhoneData> phoneDataList = daoMaster.newSession().getPhoneDataDao().loadAll();
+            for (PhoneData phoneData : phoneDataList) {
+                if (TextUtils.equals(AppConst.IMEI_KEY, phoneData.getK())) {
+                    MessageEvent event = new MessageEvent();
+                    event.setHasImei(!TextUtils.isEmpty(phoneData.getV()));
+                    event.setMessage(phoneData.getV());
+                    EventBus.getDefault().post(event);
+                }
+            }
+        }).start();
     }
 
     private boolean enabledPrivileges;
@@ -128,8 +177,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
+    protected void onPause() {
+        super.onPause();
+        EventBus.getDefault().unregister(this);
     }
 
     private void toggleNotificationListenerService() {
