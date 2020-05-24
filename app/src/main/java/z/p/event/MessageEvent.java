@@ -1,4 +1,4 @@
-package xyz.loadnl.payrecord.event;
+package z.p.event;
 
 public class MessageEvent {
     private boolean hasImei;

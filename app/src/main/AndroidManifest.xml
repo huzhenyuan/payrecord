@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="xyz.loadnl.payrecord"
+    package="z.p"
     android:installLocation="internalOnly">
 
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
@@ -27,7 +27,7 @@
         <receiver
             android:name=".AlarmReceiver"
             android:enabled="true"
-            android:exported="true"></receiver>
+            android:exported="true" />
 
         <service
             android:name=".AlarmService"

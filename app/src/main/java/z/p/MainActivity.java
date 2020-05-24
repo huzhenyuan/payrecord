@@ -1,4 +1,4 @@
-package xyz.loadnl.payrecord;
+package z.p;
 
 import android.content.ComponentName;
 import android.content.Intent;
@@ -22,10 +22,15 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.List;
 
-import xyz.loadnl.payrecord.data.DaoMaster;
-import xyz.loadnl.payrecord.data.PhoneInfoEntity;
-import xyz.loadnl.payrecord.event.MessageEvent;
-import xyz.loadnl.payrecord.util.AppUtil;
+import z.p.data.DaoMaster;
+import z.p.data.OrderEntity;
+import z.p.data.OrderEntityDao;
+import z.p.data.PhoneInfoEntity;
+import z.p.event.MessageEvent;
+import z.p.util.AppUtil;
+
+import static z.p.Const.充值订单状态_客户端停止接单;
+import static z.p.Const.充值订单状态_待支付;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -72,6 +77,15 @@ public class MainActivity extends AppCompatActivity {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
                     checkStatus();
+                } else {
+                    new Thread(()-> {
+                        List<OrderEntity> orderEntityList = daoMaster.newSession().getOrderEntityDao().queryBuilder()
+                                .where(OrderEntityDao.Properties.Status.eq(充值订单状态_待支付))
+                                .build().list();
+                        for (OrderEntity orderEntity : orderEntityList) {
+                            orderEntity.setStatus(充值订单状态_客户端停止接单);
+                        }
+                    }).start();
                 }
             }
         });

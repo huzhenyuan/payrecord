@@ -1,4 +1,4 @@
-package xyz.loadnl.payrecord.util;
+package z.p.util;
 
 import android.content.Context;
 import android.content.pm.PackageManager;

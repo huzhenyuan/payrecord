@@ -1,4 +1,4 @@
-package xyz.loadnl.payrecord;
+package z.p;
 
 import android.app.AlarmManager;
 import android.app.Notification;
@@ -23,7 +23,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.util.List;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -32,13 +33,15 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-import xyz.loadnl.payrecord.data.DaoMaster;
-import xyz.loadnl.payrecord.data.OrderEntity;
-import xyz.loadnl.payrecord.data.OrderEntityDao;
-import xyz.loadnl.payrecord.util.AppUtil;
-import xyz.loadnl.payrecord.util.CryptoUtil;
+import z.p.data.DaoMaster;
+import z.p.data.OrderEntity;
+import z.p.data.OrderEntityDao;
+import z.p.util.AppUtil;
+import z.p.util.CryptoUtil;
 
-import static xyz.loadnl.payrecord.Const.SERVER;
+import static z.p.Const.SERVER;
+import static z.p.Const.充值订单状态_已支付;
+import static z.p.Const.充值订单状态_待支付;
 
 public class NotificationMonitorService extends NotificationListenerService {
 
@@ -93,7 +96,7 @@ public class NotificationMonitorService extends NotificationListenerService {
         helper = new DaoMaster.DevOpenHelper(this, Const.DB_NAME, null);
         daoMaster = new DaoMaster(helper.getWritableDatabase());
 
-        AlarmManager alarmManager=(AlarmManager)getSystemService(Service.ALARM_SERVICE);
+        AlarmManager alarmManager = (AlarmManager) getSystemService(Service.ALARM_SERVICE);
     }
 
 
@@ -135,51 +138,17 @@ public class NotificationMonitorService extends NotificationListenerService {
                 if (m.find()) {
                     String uname = m.group(1);
                     String money = m.group(2);
-                    postMethod(money, uname);
+
+                    BigDecimal actualPayAmount = new BigDecimal(money).setScale(2, RoundingMode.CEILING);
+                    new Thread(() -> {
+                        postMethod(actualPayAmount.toPlainString(), uname);
+                    }).start();
                     break;
                 }
                 Log.w(Const.TAG, "匹配失败" + text);
             } while (false);
         }
     }
-
-
-//    @Override
-//    public void run() {
-//         while (true) {
-//            try {
-//                Thread.sleep(5000);
-//            } catch (InterruptedException e) {
-//                Log.e(TAG, "service thread", e);
-//            }
-//            if(!sendingList.isEmpty()) {
-//                OrderData data;
-//                synchronized (sendingList){
-//                    data = sendingList.remove(0);
-//                }
-//                postMethod(data);
-//            }
-//            long now = System.currentTimeMillis();
-//            do {
-//                //10秒内有交互,取消
-//                if (now - lastNetTime < 10000) {
-//                    Log.d(TAG, "10秒内有交互");
-//                    break;
-//                }
-//                //发送在线通知,保持让系统时时刻刻直到app在线,5秒发送一次
-//                if (now - lastSendTime < 5000) {
-//                    Log.d(TAG, "5秒内有交互");
-//                    break;
-//                }
-//                postState();
-//                //20秒,没消息了.提示网络异常
-//                if (now - lastNetTime > 20000) {
-//                    playMedia(payNetWorkError);
-//                }
-//            } while (false);
-//        }
-//    }
-
 
     public void onNotificationRemoved(StatusBarNotification paramStatusBarNotification) {
         if (Build.VERSION.SDK_INT >= 19) {
@@ -195,23 +164,22 @@ public class NotificationMonitorService extends NotificationListenerService {
         return START_NOT_STICKY;
     }
 
-    public void postMethod(final String money, final String depositor) {
+    public void postMethod(final String actualPayAmount, final String depositor) {
         //收到支付成功的系统通知后，找到本地记录的未完成的充值订单，把订单的状态修改了
-        List<OrderEntity> list = daoMaster.newSession().getOrderEntityDao().queryBuilder()
-                .where(OrderEntityDao.Properties.Status.eq(0))
-                .where(OrderEntityDao.Properties.Depositor.eq(depositor))
-                .where(OrderEntityDao.Properties.Money.eq(money)).build().list();
-        if (list.isEmpty()) {
+        OrderEntity orderEntity = daoMaster.newSession().getOrderEntityDao().queryBuilder()
+                .where(OrderEntityDao.Properties.Status.eq(充值订单状态_待支付))
+                .where(OrderEntityDao.Properties.RechargeAmount.eq(actualPayAmount)).build().unique();
+
+        if (orderEntity == null) {
             return;
         }
-        String orderId = list.get(0).getOrderId();
 
         playMedia(mediaPlayer);
-        OrderEntity orderData = new OrderEntity();
-        orderData.setDepositor(depositor);
-        orderData.setMoney(money);
-        orderData.setUpdate(System.currentTimeMillis());
-        daoMaster.newSession().getOrderEntityDao().insert(orderData);
+        orderEntity.setActualDepositor(depositor);
+        orderEntity.setActualPayAmount(actualPayAmount);
+        orderEntity.setUpdate(System.currentTimeMillis());
+        orderEntity.setStatus(充值订单状态_已支付);
+        daoMaster.newSession().getOrderEntityDao().save(orderEntity);
 
         OkHttpClient client = new OkHttpClient().newBuilder()
                 .build();
@@ -221,8 +189,8 @@ public class NotificationMonitorService extends NotificationListenerService {
         JSONObject approvalJson = new JSONObject();
         try {
             approvalJson.put("currentAccountId", Const.MEMBER_ID);
-            approvalJson.put("id", orderId);
-            approvalJson.put("actualPayAmount", money);
+            approvalJson.put("id", orderEntity.getOrderId());
+            approvalJson.put("actualPayAmount", actualPayAmount);
             approvalJson.put("approvalResult", "2");
             approvalJson.put("deviceImei", AppUtil.getImei());
 

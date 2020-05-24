@@ -1,8 +1,9 @@
-package xyz.loadnl.payrecord;
+package z.p;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -11,8 +12,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-import xyz.loadnl.payrecord.data.DaoMaster;
-import xyz.loadnl.payrecord.data.OrderEntity;
+import z.p.data.DaoMaster;
+import z.p.data.OrderEntity;
 
 public class LogActivity extends AppCompatActivity {
     private LinearLayout container;
@@ -27,6 +28,13 @@ public class LogActivity extends AppCompatActivity {
         container = findViewById(R.id.log_container);
         helper = new DaoMaster.DevOpenHelper(this, Const.DB_NAME, null);
         daoMaster = new DaoMaster(helper.getWritableDatabase());
+
+        Button btn_clear_log = findViewById(R.id.btn_clear_log);
+        btn_clear_log.setOnClickListener(view -> {
+            new Thread(() -> {
+                daoMaster.newSession().getOrderEntityDao().deleteAll();
+            }).start();
+        });
     }
 
     @Override
@@ -54,6 +62,18 @@ public class LogActivity extends AppCompatActivity {
         textView = view.findViewById(R.id.text_depositor);
         textView.setText(data.getDepositor());
         textView = view.findViewById(R.id.text_money);
-        textView.setText(data.getMoney());
+        textView.setText(data.getRechargeAmount());
+
+        //
+        textView = view.findViewById(R.id.text_update_time);
+        if (data.getUpdate() > 0) {
+            textView.setText(sdf.format(new Date(data.getUpdate())));
+        }
+
+        textView = view.findViewById(R.id.text_actual_depositor);
+        textView.setText(data.getActualDepositor());
+
+        textView = view.findViewById(R.id.text_actual_money);
+        textView.setText(data.getActualPayAmount());
     }
 }

@@ -1,4 +1,4 @@
-package xyz.loadnl.payrecord.util;
+package z.p.util;
 
 
 import android.util.Log;
@@ -15,7 +15,7 @@ import org.bouncycastle.util.encoders.Hex;
 
 import java.security.SecureRandom;
 
-import xyz.loadnl.payrecord.Const;
+import z.p.Const;
 
 public class CryptoUtil {
 

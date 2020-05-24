@@ -1,4 +1,4 @@
-package xyz.loadnl.payrecord.data;
+package z.p.data;
 
 
 import org.greenrobot.greendao.annotation.Entity;
