@@ -1,6 +1,6 @@
-package xyz.loadnl.payrecord;
+package xyz.loadnl.payrecord.event;
 
-class MessageEvent {
+public class MessageEvent {
     private boolean hasImei;
     private String message;
 

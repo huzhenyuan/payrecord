@@ -4,39 +4,70 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
-import android.view.View;
-import android.widget.Toast;
 
+import com.alibaba.fastjson.JSON;
+
+import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.List;
 
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
-import okhttp3.Response;
+import xyz.loadnl.payrecord.data.DaoMaster;
+import xyz.loadnl.payrecord.data.OrderEntity;
+import xyz.loadnl.payrecord.data.OrderEntityDao;
+import xyz.loadnl.payrecord.event.OrderEvent;
+import xyz.loadnl.payrecord.model.ContentItem;
+import xyz.loadnl.payrecord.model.Response;
 import xyz.loadnl.payrecord.util.AppUtil;
 import xyz.loadnl.payrecord.util.CryptoUtil;
 
-import static xyz.loadnl.payrecord.AppConst.SERVER;
+import static xyz.loadnl.payrecord.Const.SERVER;
 
 public class AlarmReceiver extends BroadcastReceiver {
 
 
+    private DaoMaster.DevOpenHelper helper;
+    private DaoMaster daoMaster;
+
+
+    public AlarmReceiver() {
+        super();
+        EventBus.getDefault().register(this);
+    }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onHandleEvent(MessageEvent messageEvent) {
-        if (messageEvent.isHasImei()) {
-            btn_imei.setVisibility(View.GONE);
-            tv_device_imei.setEnabled(false);
-            tv_device_imei.setText(messageEvent.getMessage());
-            AppUtil.setImei(messageEvent.getMessage());
-        } else {
-            Toast.makeText(this, "请设置IMEI", Toast.LENGTH_LONG).show();
+    public void onHandleEvent(OrderEvent event) {
+        if (helper == null) {
+            return;
+        }
+        Response response = event.getResponse();
+        if (response.isSuccess()) {
+            List<ContentItem> contentList = response.getData().getContent();
+
+            for (ContentItem contentItem : contentList) {
+                OrderEntity orderEntity = new OrderEntity();
+                orderEntity.setOrderId(contentItem.getOrderNo());
+                orderEntity.setCreate(System.currentTimeMillis());
+                orderEntity.setDepositor(contentItem.getDepositor());
+                orderEntity.setMoney(Double.valueOf(contentItem.getRechargeAmount()).toString());
+
+                OrderEntity findEntity = daoMaster.newSession().getOrderEntityDao().queryBuilder()
+                        .where(OrderEntityDao.Properties.OrderId.eq(contentItem.getOrderNo())).unique();
+                if (findEntity == null) {
+                    daoMaster.newSession().getOrderEntityDao().save(orderEntity);
+                    Log.i(Const.TAG, "存储订单：" + JSON.toJSONString(orderEntity));
+                } else {
+                    Log.i(Const.TAG, "已经存在订单：" + JSON.toJSONString(orderEntity));
+                }
+            }
         }
     }
 
@@ -46,10 +77,15 @@ public class AlarmReceiver extends BroadcastReceiver {
     // 如果没有，服务器记录设备在线的信息
     @Override
     public void onReceive(Context context, Intent intent) {
-        Log.i(AppConst.TAG, "检查支付请求");
+        Log.i(Const.TAG, "检查支付请求");
         new Thread(this::sendRequest).start();
         Intent startIntent = new Intent(context, AlarmService.class);
         context.startService(startIntent);
+
+        if (helper == null) {
+            helper = new DaoMaster.DevOpenHelper(context, Const.DB_NAME, null);
+            daoMaster = new DaoMaster(helper.getWritableDatabase());
+        }
     }
 
     //检查有没有分配给当前设备的订单
@@ -61,11 +97,11 @@ public class AlarmReceiver extends BroadcastReceiver {
 
         JSONObject orderQueryJson = new JSONObject();
         try {
-            orderQueryJson.put("currentAccountId", AppConst.MEMBER_ID);
-            orderQueryJson.put(AppConst.IMEI_KEY, AppUtil.getImei());
+            orderQueryJson.put("currentAccountId", Const.MEMBER_ID);
+            orderQueryJson.put(Const.IMEI_KEY, AppUtil.getImei());
 
             String content = orderQueryJson.toString();
-            String signature = CryptoUtil.sign(AppConst.PRIVATE_KEY, content);
+            String signature = CryptoUtil.sign(Const.PRIVATE_KEY, content);
 
             orderQueryJson.put("signature", signature);
         } catch (JSONException e) {
@@ -73,15 +109,22 @@ public class AlarmReceiver extends BroadcastReceiver {
         }
         RequestBody body = RequestBody.create(mediaType, orderQueryJson.toString());
         Request request = new Request.Builder()
-                .url(SERVER + "recharge/approval")
+                .url(SERVER + "recharge/findMemberImeiRechargeOrderByPage")
                 .method("POST", body)
                 .addHeader("Content-Type", "application/json")
                 .build();
-        Response response = null;
+        okhttp3.Response response = null;
         try {
             response = client.newCall(request).execute();
             String responseString = response.body().string();
-            Log.i(AppConst.TAG, "提交收款信息结果：" + responseString);
+            Log.i(Const.TAG, "提交查询分配给当前设备的订单结果：" + responseString);
+            Response resp = JSON.parseObject(responseString, Response.class);
+
+            response.body().close();
+            response.close();
+            OrderEvent event = new OrderEvent();
+            event.setResponse(resp);
+            EventBus.getDefault().post(event);
         } catch (IOException e) {
             e.printStackTrace();
         }

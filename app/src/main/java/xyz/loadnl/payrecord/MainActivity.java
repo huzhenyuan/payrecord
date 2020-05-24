@@ -23,7 +23,8 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.util.List;
 
 import xyz.loadnl.payrecord.data.DaoMaster;
-import xyz.loadnl.payrecord.data.PhoneData;
+import xyz.loadnl.payrecord.data.PhoneInfoEntity;
+import xyz.loadnl.payrecord.event.MessageEvent;
 import xyz.loadnl.payrecord.util.AppUtil;
 
 public class MainActivity extends AppCompatActivity {
@@ -93,10 +94,10 @@ public class MainActivity extends AppCompatActivity {
         btn_imei = findViewById(R.id.btn_imei);
         btn_imei.setOnClickListener(view -> {
             if (!TextUtils.isEmpty(tv_device_imei.getText())) {
-                PhoneData phoneData = new PhoneData();
-                phoneData.setK(AppConst.IMEI_KEY);
+                PhoneInfoEntity phoneData = new PhoneInfoEntity();
+                phoneData.setK(Const.IMEI_KEY);
                 phoneData.setV(tv_device_imei.getText().toString());
-                daoMaster.newSession().getPhoneDataDao().insert(phoneData);
+                daoMaster.newSession().getPhoneInfoEntityDao().insert(phoneData);
 
                 MessageEvent event = new MessageEvent();
                 event.setHasImei(true);
@@ -123,12 +124,12 @@ public class MainActivity extends AppCompatActivity {
         EventBus.getDefault().register(this);
         new Thread(() -> {
 
-            helper = new DaoMaster.DevOpenHelper(this, AppConst.DB_NAME, null);
+            helper = new DaoMaster.DevOpenHelper(this, Const.DB_NAME, null);
             daoMaster = new DaoMaster(helper.getWritableDatabase());
 
-            List<PhoneData> phoneDataList = daoMaster.newSession().getPhoneDataDao().loadAll();
-            for (PhoneData phoneData : phoneDataList) {
-                if (TextUtils.equals(AppConst.IMEI_KEY, phoneData.getK())) {
+            List<PhoneInfoEntity> phoneDataList = daoMaster.newSession().getPhoneInfoEntityDao().loadAll();
+            for (PhoneInfoEntity phoneData : phoneDataList) {
+                if (TextUtils.equals(Const.IMEI_KEY, phoneData.getK())) {
                     MessageEvent event = new MessageEvent();
                     event.setHasImei(!TextUtils.isEmpty(phoneData.getV()));
                     event.setMessage(phoneData.getV());

@@ -2,12 +2,12 @@ package xyz.loadnl.payrecord.data;
 
 
 import org.greenrobot.greendao.annotation.Entity;
-import org.greenrobot.greendao.annotation.Id;
 import org.greenrobot.greendao.annotation.Generated;
+import org.greenrobot.greendao.annotation.Id;
+import org.greenrobot.greendao.annotation.Index;
 
-//TODO index
-@Entity
-public class OrderData {
+@Entity(indexes = {@Index(value = "orderId", unique = true), @Index(value = "depositor")})
+public class OrderEntity {
     @Id(autoincrement = true)
     private Long id;
     private String orderId;
@@ -16,9 +16,9 @@ public class OrderData {
     private String money;
     private long create;
     private long update;
-    @Generated(hash = 1394272680)
-    public OrderData(Long id, String orderId, int status, String depositor,
-            String money, long create, long update) {
+    @Generated(hash = 1713134754)
+    public OrderEntity(Long id, String orderId, int status, String depositor, String money,
+            long create, long update) {
         this.id = id;
         this.orderId = orderId;
         this.status = status;
@@ -27,8 +27,8 @@ public class OrderData {
         this.create = create;
         this.update = update;
     }
-    @Generated(hash = 863401038)
-    public OrderData() {
+    @Generated(hash = 959685193)
+    public OrderEntity() {
     }
     public Long getId() {
         return this.id;
@@ -72,4 +72,5 @@ public class OrderData {
     public void setUpdate(long update) {
         this.update = update;
     }
+
 }

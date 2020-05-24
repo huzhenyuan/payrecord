@@ -6,17 +6,17 @@ import org.greenrobot.greendao.annotation.Id;
 import org.greenrobot.greendao.annotation.Generated;
 
 @Entity
-public class PhoneData {
+public class PhoneInfoEntity {
     @Id
     private String k;
     private String v;
-    @Generated(hash = 101929453)
-    public PhoneData(String k, String v) {
+    @Generated(hash = 981912905)
+    public PhoneInfoEntity(String k, String v) {
         this.k = k;
         this.v = v;
     }
-    @Generated(hash = 143274380)
-    public PhoneData() {
+    @Generated(hash = 519516684)
+    public PhoneInfoEntity() {
     }
     public String getK() {
         return this.k;
@@ -30,5 +30,6 @@ public class PhoneData {
     public void setV(String v) {
         this.v = v;
     }
+   
 
 }

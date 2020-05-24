@@ -33,12 +33,12 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import xyz.loadnl.payrecord.data.DaoMaster;
-import xyz.loadnl.payrecord.data.OrderData;
-import xyz.loadnl.payrecord.data.OrderDataDao;
+import xyz.loadnl.payrecord.data.OrderEntity;
+import xyz.loadnl.payrecord.data.OrderEntityDao;
 import xyz.loadnl.payrecord.util.AppUtil;
 import xyz.loadnl.payrecord.util.CryptoUtil;
 
-import static xyz.loadnl.payrecord.AppConst.SERVER;
+import static xyz.loadnl.payrecord.Const.SERVER;
 
 public class NotificationMonitorService extends NotificationListenerService {
 
@@ -64,18 +64,18 @@ public class NotificationMonitorService extends NotificationListenerService {
         mediaPlayer = MediaPlayer.create(this, R.raw.payrecv);
         MediaPlayer payNetWorkError = MediaPlayer.create(this, R.raw.networkerror);
 
-        Log.i(AppConst.TAG, "Notification Monitor Service start");
+        Log.i(Const.TAG, "Notification Monitor Service start");
 
         NotificationManager notificationManager = (NotificationManager) getSystemService(Service.NOTIFICATION_SERVICE);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && notificationManager != null) {
-            NotificationChannel notificationChannel = notificationManager.getNotificationChannel(AppConst.CHANNEL_ID);
+            NotificationChannel notificationChannel = notificationManager.getNotificationChannel(Const.CHANNEL_ID);
             if (notificationChannel == null) {
-                notificationChannel = new NotificationChannel(AppConst.CHANNEL_ID, "payRecord", NotificationManager.IMPORTANCE_DEFAULT);
+                notificationChannel = new NotificationChannel(Const.CHANNEL_ID, "payRecord", NotificationManager.IMPORTANCE_DEFAULT);
                 notificationChannel.setDescription("个人支付的监控");
                 notificationManager.createNotificationChannel(notificationChannel);
             }
         }
-        NotificationCompat.Builder nb = new NotificationCompat.Builder(this, AppConst.CHANNEL_ID);//
+        NotificationCompat.Builder nb = new NotificationCompat.Builder(this, Const.CHANNEL_ID);//
 
         nb.setContentTitle("PayRecord").setTicker("PayRecord个人支付").setSmallIcon(R.drawable.ic_monetization_on_black_24dp);
         nb.setContentText("个人支付运行中.请保持此通知一直存在");
@@ -90,7 +90,7 @@ public class NotificationMonitorService extends NotificationListenerService {
             wakeLock.acquire(7 * 24 * 60 * 60 * 1000L /*10 minutes*/);
         }
 
-        helper = new DaoMaster.DevOpenHelper(this, AppConst.DB_NAME, null);
+        helper = new DaoMaster.DevOpenHelper(this, Const.DB_NAME, null);
         daoMaster = new DaoMaster(helper.getWritableDatabase());
 
         AlarmManager alarmManager=(AlarmManager)getSystemService(Service.ALARM_SERVICE);
@@ -112,9 +112,9 @@ public class NotificationMonitorService extends NotificationListenerService {
         Bundle bundle = sbn.getNotification().extras;
         String pkgName = sbn.getPackageName();
         if (getPackageName().equals(pkgName)) {
-            Log.i(AppConst.TAG, "测试成功");
+            Log.i(Const.TAG, "测试成功");
             Intent intent = new Intent();
-            intent.setAction(AppConst.IntentAction);
+            intent.setAction(Const.IntentAction);
             Uri uri = new Uri.Builder().scheme("app").path("log").query("msg=测试成功").build();
             intent.setData(uri);
             sendBroadcast(intent);
@@ -123,7 +123,7 @@ public class NotificationMonitorService extends NotificationListenerService {
         }
         String title = bundle.getString("android.title");
         String text = bundle.getString("android.text");
-        Log.d(AppConst.TAG, "Notification posted [" + pkgName + "]:" + title + " & " + text);
+        Log.d(Const.TAG, "Notification posted [" + pkgName + "]:" + title + " & " + text);
         if (TextUtils.isEmpty(text)) {
             //没有消息.
             return;
@@ -138,7 +138,7 @@ public class NotificationMonitorService extends NotificationListenerService {
                     postMethod(money, uname);
                     break;
                 }
-                Log.w(AppConst.TAG, "匹配失败" + text);
+                Log.w(Const.TAG, "匹配失败" + text);
             } while (false);
         }
     }
@@ -187,7 +187,7 @@ public class NotificationMonitorService extends NotificationListenerService {
             String pkgName = paramStatusBarNotification.getPackageName();
             String title = localObject.getString("android.title");
             String text = (localObject).getString("android.text");
-            Log.e(AppConst.TAG, "Notification removed [" + pkgName + "]:" + title + " & " + text);
+            Log.e(Const.TAG, "Notification removed [" + pkgName + "]:" + title + " & " + text);
         }
     }
 
@@ -197,21 +197,21 @@ public class NotificationMonitorService extends NotificationListenerService {
 
     public void postMethod(final String money, final String depositor) {
         //收到支付成功的系统通知后，找到本地记录的未完成的充值订单，把订单的状态修改了
-        List<OrderData> list = daoMaster.newSession().getOrderDataDao().queryBuilder()
-                .where(OrderDataDao.Properties.Status.eq(0))
-                .where(OrderDataDao.Properties.Depositor.eq(depositor))
-                .where(OrderDataDao.Properties.Money.eq(money)).build().list();
+        List<OrderEntity> list = daoMaster.newSession().getOrderEntityDao().queryBuilder()
+                .where(OrderEntityDao.Properties.Status.eq(0))
+                .where(OrderEntityDao.Properties.Depositor.eq(depositor))
+                .where(OrderEntityDao.Properties.Money.eq(money)).build().list();
         if (list.isEmpty()) {
             return;
         }
         String orderId = list.get(0).getOrderId();
 
         playMedia(mediaPlayer);
-        OrderData orderData = new OrderData();
+        OrderEntity orderData = new OrderEntity();
         orderData.setDepositor(depositor);
         orderData.setMoney(money);
         orderData.setUpdate(System.currentTimeMillis());
-        daoMaster.newSession().getOrderDataDao().insert(orderData);
+        daoMaster.newSession().getOrderEntityDao().insert(orderData);
 
         OkHttpClient client = new OkHttpClient().newBuilder()
                 .build();
@@ -220,14 +220,14 @@ public class NotificationMonitorService extends NotificationListenerService {
 
         JSONObject approvalJson = new JSONObject();
         try {
-            approvalJson.put("currentAccountId", AppConst.MEMBER_ID);
+            approvalJson.put("currentAccountId", Const.MEMBER_ID);
             approvalJson.put("id", orderId);
             approvalJson.put("actualPayAmount", money);
             approvalJson.put("approvalResult", "2");
             approvalJson.put("deviceImei", AppUtil.getImei());
 
             String content = approvalJson.toString();
-            String signature = CryptoUtil.sign(AppConst.PRIVATE_KEY, content);
+            String signature = CryptoUtil.sign(Const.PRIVATE_KEY, content);
 
             approvalJson.put("signature", signature);
         } catch (JSONException e) {
@@ -243,14 +243,14 @@ public class NotificationMonitorService extends NotificationListenerService {
         try {
             response = client.newCall(request).execute();
             String responseString = response.body().string();
-            Log.i(AppConst.TAG, "提交收款信息结果：" + responseString);
+            Log.i(Const.TAG, "提交收款信息结果：" + responseString);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     private void playMedia(MediaPlayer media) {
-        if (AppConst.PlaySounds) {
+        if (Const.PlaySounds) {
             media.start();
         }
     }

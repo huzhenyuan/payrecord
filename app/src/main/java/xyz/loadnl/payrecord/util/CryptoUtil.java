@@ -15,7 +15,7 @@ import org.bouncycastle.util.encoders.Hex;
 
 import java.security.SecureRandom;
 
-import xyz.loadnl.payrecord.AppConst;
+import xyz.loadnl.payrecord.Const;
 
 public class CryptoUtil {
 
@@ -66,8 +66,8 @@ public class CryptoUtil {
         String priKey = Hex.toHexString(privateKeyEncoded);
         String pubKey = Hex.toHexString(publicKeyEncoded);
 
-        Log.i(AppConst.TAG, "Gen PubKey " + pubKey);
-        Log.i(AppConst.TAG, "Gen PriKey " + priKey);
+        Log.i(Const.TAG, "Gen PubKey " + pubKey);
+        Log.i(Const.TAG, "Gen PriKey " + priKey);
     }
 
     public static void main(String[] args) {
