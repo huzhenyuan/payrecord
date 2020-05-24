@@ -139,7 +139,7 @@ public class NotificationMonitorService extends NotificationListenerService {
                     String uname = m.group(1);
                     String money = m.group(2);
 
-                    BigDecimal actualPayAmount = new BigDecimal(money).setScale(2, RoundingMode.CEILING);
+                    BigDecimal actualPayAmount = new BigDecimal(money).setScale(2, RoundingMode.FLOOR);
                     new Thread(() -> {
                         postMethod(actualPayAmount.toPlainString(), uname);
                     }).start();

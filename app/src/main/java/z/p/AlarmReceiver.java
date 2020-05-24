@@ -29,10 +29,12 @@ import z.p.util.CryptoUtil;
 import static z.p.Const.SERVER;
 import static z.p.Const.充值订单状态_待支付;
 
+
 public class AlarmReceiver extends BroadcastReceiver {
 
     private Context context;
 
+    // TODO 清理老的订单
     // TODO 循环检查有没有分配给当前设备的订单
     // 如果有， 本地存下来，然后通知服务器就绪
     // 如果没有，服务器记录设备在线的信息
@@ -101,7 +103,7 @@ public class AlarmReceiver extends BroadcastReceiver {
                 orderEntity.setCreate(System.currentTimeMillis());
                 orderEntity.setDepositor(contentItem.getDepositor());
                 orderEntity.setStatus(充值订单状态_待支付);
-                BigDecimal rechargeAmount = new BigDecimal(contentItem.getRechargeAmount()).setScale(2, RoundingMode.CEILING);
+                BigDecimal rechargeAmount = new BigDecimal(contentItem.getRechargeAmount()).setScale(2, RoundingMode.FLOOR);
                 orderEntity.setRechargeAmount(rechargeAmount.toPlainString());
 
                 OrderEntity findEntity = daoMaster.newSession().getOrderEntityDao().queryBuilder()
