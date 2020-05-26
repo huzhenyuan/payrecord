@@ -19,8 +19,9 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
 
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONException;
+import com.alibaba.fastjson.JSONObject;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -36,6 +37,7 @@ import okhttp3.Response;
 import z.p.data.DaoMaster;
 import z.p.data.OrderEntity;
 import z.p.data.OrderEntityDao;
+import z.p.model.ApproveBean;
 import z.p.util.AppUtil;
 import z.p.util.CryptoUtil;
 
@@ -186,22 +188,19 @@ public class NotificationMonitorService extends NotificationListenerService {
         MediaType mediaType = MediaType.parse("application/json");
 
 
-        JSONObject approvalJson = new JSONObject();
-        try {
-            approvalJson.put("currentAccountId", Const.MEMBER_ID);
-            approvalJson.put("id", orderEntity.getOrderId());
-            approvalJson.put("actualPayAmount", actualPayAmount);
-            approvalJson.put("approvalResult", "2");
-            approvalJson.put("deviceImei", AppUtil.getImei());
+        ApproveBean approveBean = new ApproveBean();
+        approveBean.setActualPayAmount(actualPayAmount);
+        approveBean.setCurrentAccountId(Const.MEMBER_ID);
+        approveBean.setApprovalResult(充值订单状态_已支付);
+        approveBean.setDeviceImei(AppUtil.getImei());
+        approveBean.setId(orderEntity.getOrderId());
 
-            String content = approvalJson.toString();
-            String signature = CryptoUtil.sign(Const.PRIVATE_KEY, content);
+        String content = JSON.toJSONString(approveBean);
+        String signature = CryptoUtil.sign(Const.PRIVATE_KEY, content);
 
-            approvalJson.put("signature", signature);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        RequestBody body = RequestBody.create(mediaType, approvalJson.toString());
+        approveBean.setSignature(signature);
+
+        RequestBody body = RequestBody.create(mediaType, JSON.toJSONString(approveBean));
         Request request = new Request.Builder()
                 .url(SERVER + "recharge/approval")
                 .method("POST", body)

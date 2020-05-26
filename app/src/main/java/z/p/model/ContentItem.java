@@ -5,22 +5,22 @@ import com.alibaba.fastjson.annotation.JSONField;
 public class ContentItem{
 
 	@JSONField(name="note")
-	private Object note;
+	private String note;
 
 	@JSONField(name="payChannelName")
-	private Object payChannelName;
+	private String payChannelName;
 
 	@JSONField(name="payTime")
-	private Object payTime;
+	private String payTime;
 
 	@JSONField(name="payUrl")
-	private Object payUrl;
+	private String payUrl;
 
 	@JSONField(name="bankName")
-	private Object bankName;
+	private String bankName;
 
 	@JSONField(name="depositTime")
-	private Object depositTime;
+	private String depositTime;
 
 	@JSONField(name="orderState")
 	private String orderState;
@@ -29,7 +29,7 @@ public class ContentItem{
 	private String merchantName;
 
 	@JSONField(name="accountHolder")
-	private Object accountHolder;
+	private String accountHolder;
 
 	@JSONField(name="gatheringCodeId")
 	private String gatheringCodeId;
@@ -59,22 +59,22 @@ public class ContentItem{
 	private GatheringCode gatheringCode;
 
 	@JSONField(name="actualPayAmount")
-	private Object actualPayAmount;
+	private String actualPayAmount;
 
 	@JSONField(name="submitTime")
 	private String submitTime;
 
 	@JSONField(name="dealTime")
-	private Object dealTime;
+	private String dealTime;
 
 	@JSONField(name="rechargeAmount")
-	private double rechargeAmount;
+	private String rechargeAmount;
 
 	@JSONField(name="deviceImei")
 	private String deviceImei;
 
 	@JSONField(name="settlementTime")
-	private Object settlementTime;
+	private String settlementTime;
 
 	@JSONField(name="depositor")
 	private String depositor;
@@ -82,51 +82,51 @@ public class ContentItem{
 	@JSONField(name="orderStateName")
 	private String orderStateName;
 
-	public void setNote(Object note){
+	public void setNote(String note){
 		this.note = note;
 	}
 
-	public Object getNote(){
+	public String getNote(){
 		return note;
 	}
 
-	public void setPayChannelName(Object payChannelName){
+	public void setPayChannelName(String payChannelName){
 		this.payChannelName = payChannelName;
 	}
 
-	public Object getPayChannelName(){
+	public String getPayChannelName(){
 		return payChannelName;
 	}
 
-	public void setPayTime(Object payTime){
+	public void setPayTime(String payTime){
 		this.payTime = payTime;
 	}
 
-	public Object getPayTime(){
+	public String getPayTime(){
 		return payTime;
 	}
 
-	public void setPayUrl(Object payUrl){
+	public void setPayUrl(String payUrl){
 		this.payUrl = payUrl;
 	}
 
-	public Object getPayUrl(){
+	public String getPayUrl(){
 		return payUrl;
 	}
 
-	public void setBankName(Object bankName){
+	public void setBankName(String bankName){
 		this.bankName = bankName;
 	}
 
-	public Object getBankName(){
+	public String getBankName(){
 		return bankName;
 	}
 
-	public void setDepositTime(Object depositTime){
+	public void setDepositTime(String depositTime){
 		this.depositTime = depositTime;
 	}
 
-	public Object getDepositTime(){
+	public String getDepositTime(){
 		return depositTime;
 	}
 
@@ -146,11 +146,11 @@ public class ContentItem{
 		return merchantName;
 	}
 
-	public void setAccountHolder(Object accountHolder){
+	public void setAccountHolder(String accountHolder){
 		this.accountHolder = accountHolder;
 	}
 
-	public Object getAccountHolder(){
+	public String getAccountHolder(){
 		return accountHolder;
 	}
 
@@ -226,11 +226,11 @@ public class ContentItem{
 		return gatheringCode;
 	}
 
-	public void setActualPayAmount(Object actualPayAmount){
+	public void setActualPayAmount(String actualPayAmount){
 		this.actualPayAmount = actualPayAmount;
 	}
 
-	public Object getActualPayAmount(){
+	public String getActualPayAmount(){
 		return actualPayAmount;
 	}
 
@@ -242,19 +242,19 @@ public class ContentItem{
 		return submitTime;
 	}
 
-	public void setDealTime(Object dealTime){
+	public void setDealTime(String dealTime){
 		this.dealTime = dealTime;
 	}
 
-	public Object getDealTime(){
+	public String getDealTime(){
 		return dealTime;
 	}
 
-	public void setRechargeAmount(double rechargeAmount){
+	public void setRechargeAmount(String rechargeAmount){
 		this.rechargeAmount = rechargeAmount;
 	}
 
-	public double getRechargeAmount(){
+	public String getRechargeAmount(){
 		return rechargeAmount;
 	}
 
@@ -266,11 +266,11 @@ public class ContentItem{
 		return deviceImei;
 	}
 
-	public void setSettlementTime(Object settlementTime){
+	public void setSettlementTime(String settlementTime){
 		this.settlementTime = settlementTime;
 	}
 
-	public Object getSettlementTime(){
+	public String getSettlementTime(){
 		return settlementTime;
 	}
 

@@ -19,9 +19,9 @@ public class Const {
 
     public static final String IMEI_KEY = "deviceImei";
 
-    public static final int 充值订单状态_待支付 = 1;
-    public static final int 充值订单状态_已支付 = 2;
-    public static final int 充值订单状态_已结算 = 3;
-    public static final int 充值订单状态_客户端停止接单 = 4;
+    public static final String 充值订单状态_待支付 = "1";
+    public static final String 充值订单状态_已支付 = "2";
+    public static final String 充值订单状态_已结算 = "3";
+    public static final String 充值订单状态_客户端停止接单 = "4";
 
 }

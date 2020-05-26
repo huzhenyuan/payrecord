@@ -11,15 +11,15 @@ public class OrderEntity {
     @Id(autoincrement = true)
     private Long id;
     private String orderId;
-    private int status;
+    private String status;
     private String depositor;
     private String actualDepositor;
     private String rechargeAmount;
     private String actualPayAmount;
     private long create;
     private long update;
-    @Generated(hash = 1043205639)
-    public OrderEntity(Long id, String orderId, int status, String depositor,
+    @Generated(hash = 256637948)
+    public OrderEntity(Long id, String orderId, String status, String depositor,
             String actualDepositor, String rechargeAmount, String actualPayAmount,
             long create, long update) {
         this.id = id;
@@ -47,10 +47,10 @@ public class OrderEntity {
     public void setOrderId(String orderId) {
         this.orderId = orderId;
     }
-    public int getStatus() {
+    public String getStatus() {
         return this.status;
     }
-    public void setStatus(int status) {
+    public void setStatus(String status) {
         this.status = status;
     }
     public String getDepositor() {
