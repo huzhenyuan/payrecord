@@ -7,6 +7,7 @@ import android.util.Log;
 
 import com.alibaba.fastjson.JSON;
 
+import org.greenrobot.eventbus.EventBus;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -21,6 +22,7 @@ import okhttp3.RequestBody;
 import z.p.data.DaoMaster;
 import z.p.data.OrderEntity;
 import z.p.data.OrderEntityDao;
+import z.p.event.NetworkEvent;
 import z.p.model.ContentItem;
 import z.p.model.Response;
 import z.p.util.AppUtil;
@@ -63,6 +65,11 @@ public class AlarmReceiver extends BroadcastReceiver {
 
             orderQueryJson.put("signature", signature);
         } catch (JSONException e) {
+
+            NetworkEvent networkEvent = new NetworkEvent();
+            networkEvent.setConnect(false);
+            EventBus.getDefault().post(networkEvent);
+
             e.printStackTrace();
         }
         RequestBody body = RequestBody.create(mediaType, orderQueryJson.toString());
@@ -83,6 +90,11 @@ public class AlarmReceiver extends BroadcastReceiver {
 
             onHandleEvent(resp);
         } catch (Exception e) {
+
+            NetworkEvent networkEvent = new NetworkEvent();
+            networkEvent.setConnect(false);
+            EventBus.getDefault().post(networkEvent);
+
             e.printStackTrace();
         }
     }
@@ -93,6 +105,12 @@ public class AlarmReceiver extends BroadcastReceiver {
         DaoMaster daoMaster;
         helper = new DaoMaster.DevOpenHelper(context, Const.DB_NAME, null);
         daoMaster = new DaoMaster(helper.getWritableDatabase());
+
+
+        NetworkEvent networkEvent = new NetworkEvent();
+        networkEvent.setConnect(response.isSuccess());
+        EventBus.getDefault().post(networkEvent);
+
 
         if (response.isSuccess()) {
             List<ContentItem> contentList = response.getData().getContent();

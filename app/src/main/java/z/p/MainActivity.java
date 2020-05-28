@@ -3,6 +3,7 @@ package z.p;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -27,6 +28,7 @@ import z.p.data.OrderEntity;
 import z.p.data.OrderEntityDao;
 import z.p.data.PhoneInfoEntity;
 import z.p.event.MessageEvent;
+import z.p.event.NetworkEvent;
 import z.p.util.AppUtil;
 
 import static z.p.Const.充值订单状态_客户端停止接单;
@@ -37,13 +39,14 @@ public class MainActivity extends AppCompatActivity {
     private Switch notification_switch;
     private Switch payService_switch;
     private TextView tv_device_imei;
+    private TextView tip;
     private Button btn_imei;
 
     private DaoMaster.DevOpenHelper helper;
     private DaoMaster daoMaster;
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onHandleEvent(MessageEvent messageEvent) {
+    public void onHandleMessageEvent(MessageEvent messageEvent) {
         if (messageEvent.isHasImei()) {
             btn_imei.setVisibility(View.GONE);
             tv_device_imei.setEnabled(false);
@@ -51,6 +54,15 @@ public class MainActivity extends AppCompatActivity {
             AppUtil.setImei(messageEvent.getMessage());
         } else {
             Toast.makeText(this, "请设置IMEI", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onHandleNetworkEvent(NetworkEvent networkEvent) {
+        if (networkEvent.isConnect()) {
+            tip.setBackgroundColor(Color.GREEN);
+        } else {
+            tip.setBackgroundColor(Color.RED);
         }
     }
 
@@ -78,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
                 if (isChecked) {
                     checkStatus();
                 } else {
-                    new Thread(()-> {
+                    new Thread(() -> {
                         List<OrderEntity> orderEntityList = daoMaster.newSession().getOrderEntityDao().queryBuilder()
                                 .where(OrderEntityDao.Properties.Status.eq(充值订单状态_待支付))
                                 .build().list();
@@ -119,6 +131,7 @@ public class MainActivity extends AppCompatActivity {
                 EventBus.getDefault().post(event);
             }
         });
+        tip = findViewById(R.id.tip);
 
         Intent startIntent = new Intent(this, AlarmService.class);
         startService(startIntent);

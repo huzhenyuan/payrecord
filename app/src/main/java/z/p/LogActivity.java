@@ -34,6 +34,7 @@ public class LogActivity extends AppCompatActivity {
             new Thread(() -> {
                 daoMaster.newSession().getOrderEntityDao().deleteAll();
             }).start();
+            finish();
         });
     }
 
