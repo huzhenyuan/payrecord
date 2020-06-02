@@ -11,9 +11,16 @@
         android:layout_gravity="center"
         android:text="清除日志" />
 
-    <LinearLayout
+<!--    <LinearLayout-->
+<!--        android:id="@+id/log_container"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="match_parent"-->
+<!--        android:orientation="vertical" />-->
+
+    <ListView
         android:id="@+id/log_container"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical" />
+        android:layout_height="match_parent">
+
+    </ListView>
 </LinearLayout>

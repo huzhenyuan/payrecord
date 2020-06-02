@@ -5,18 +5,21 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.IntStream;
 
 import z.p.data.DaoMaster;
 import z.p.data.OrderEntity;
 
 public class LogActivity extends AppCompatActivity {
-    private LinearLayout container;
+    private ListView container;
+    private LogAdapter logAdapter;
 
     private DaoMaster.DevOpenHelper helper;
     private DaoMaster daoMaster;
@@ -41,40 +44,27 @@ public class LogActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        container.removeAllViews();
         addLogItem();
     }
 
     private void addLogItem() {
         List<OrderEntity> orderData = daoMaster.newSession().getOrderEntityDao().loadAll();
-        for (OrderEntity orderDatum : orderData) {
-            View view = View.inflate(this, R.layout.sample_log_item_comp, null);
-            updateText(orderDatum, view);
-            container.addView(view);
-        }
-    }
 
-    private void updateText(OrderEntity data, View view) {
-        TextView textView = view.findViewById(R.id.text_id);
-        textView.setText(String.valueOf(data.getId()));
-        textView = view.findViewById(R.id.text_time);
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.CHINA);
-        textView.setText(sdf.format(new Date(data.getCreate())));
-        textView = view.findViewById(R.id.text_depositor);
-        textView.setText(data.getDepositor());
-        textView = view.findViewById(R.id.text_money);
-        textView.setText(data.getRechargeAmount());
-
-        //
-        textView = view.findViewById(R.id.text_update_time);
-        if (data.getUpdate() > 0) {
-            textView.setText(sdf.format(new Date(data.getUpdate())));
+        for (int i=0;i<100;i++) {
+            OrderEntity orderEntity = new OrderEntity();
+            orderEntity.setId((long) i);
+            orderEntity.setDepositor("setDepositor");
+            orderEntity.setOrderId(String.valueOf(i));
+            orderEntity.setActualDepositor("setActualDepositor");
+            orderEntity.setActualPayAmount("100");
+            orderEntity.setCreate(System.currentTimeMillis());
+            orderEntity.setUpdate(System.currentTimeMillis());
+            orderEntity.setRechargeAmount("200");
+            orderData.add(orderEntity);
         }
 
-        textView = view.findViewById(R.id.text_actual_depositor);
-        textView.setText(data.getActualDepositor());
-
-        textView = view.findViewById(R.id.text_actual_money);
-        textView.setText(data.getActualPayAmount());
+        logAdapter = new LogAdapter(this, orderData);
+        container.setAdapter(logAdapter);
+        logAdapter.notifyDataSetChanged();
     }
 }
