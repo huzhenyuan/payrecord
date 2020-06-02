@@ -9,11 +9,14 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import java.text.SimpleDateFormat;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.IntStream;
 
+import kotlin.collections.ArrayDeque;
 import z.p.data.DaoMaster;
 import z.p.data.OrderEntity;
 
@@ -33,11 +36,17 @@ public class LogActivity extends AppCompatActivity {
         daoMaster = new DaoMaster(helper.getWritableDatabase());
 
         Button btn_clear_log = findViewById(R.id.btn_clear_log);
+        btn_clear_log.setEnabled(false);
         btn_clear_log.setOnClickListener(view -> {
             new Thread(() -> {
                 daoMaster.newSession().getOrderEntityDao().deleteAll();
             }).start();
             finish();
+        });
+
+        Button btn_refresh = findViewById(R.id.btn_refresh);
+        btn_refresh.setOnClickListener(view -> {
+            addLogItem();
         });
     }
 
@@ -49,6 +58,8 @@ public class LogActivity extends AppCompatActivity {
 
     private void addLogItem() {
         List<OrderEntity> orderData = daoMaster.newSession().getOrderEntityDao().loadAll();
+        List<OrderEntity> newOrderData = new LinkedList<>();
+
 
         for (int i=0;i<100;i++) {
             OrderEntity orderEntity = new OrderEntity();
@@ -63,7 +74,11 @@ public class LogActivity extends AppCompatActivity {
             orderData.add(orderEntity);
         }
 
-        logAdapter = new LogAdapter(this, orderData);
+
+        for (OrderEntity orderDatum : orderData) {
+            newOrderData.add(0, orderDatum);
+        }
+        logAdapter = new LogAdapter(this, newOrderData);
         container.setAdapter(logAdapter);
         logAdapter.notifyDataSetChanged();
     }
