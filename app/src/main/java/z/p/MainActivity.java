@@ -40,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
     private Switch payService_switch;
     private TextView tv_device_imei;
     private TextView tip;
+    private TextView info;
     private Button btn_imei;
 
     private DaoMaster.DevOpenHelper helper;
@@ -132,6 +133,18 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         tip = findViewById(R.id.tip);
+
+        info = findViewById(R.id.info);
+        StringBuffer sb = new StringBuffer();
+        sb.append("VERSION")
+                .append(AppUtil.getVersionName(this))
+                .append(System.lineSeparator())
+                .append(Const.SERVER.replace(".","").replace("http://",""))
+                .append(System.lineSeparator())
+                .append(Const.MEMBER_ID)
+                .append(System.lineSeparator());
+        info.setText(sb.toString());
+
 
         Intent startIntent = new Intent(this, AlarmService.class);
         startService(startIntent);

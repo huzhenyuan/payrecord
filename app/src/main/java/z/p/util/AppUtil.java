@@ -7,15 +7,15 @@ import android.content.pm.PackageManager;
 public class AppUtil {
     private static String imei;
 
-    public static int getVersionCode(Context mContext) {
-        int versionCode = 0;
+    public static String getVersionName(Context mContext) {
+        String versionName = "";
         try {
-            versionCode = mContext.getPackageManager().
-                    getPackageInfo(mContext.getPackageName(), 0).versionCode;
+            versionName = mContext.getPackageManager().
+                    getPackageInfo(mContext.getPackageName(), 0).versionName;
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }
-        return versionCode;
+        return versionName;
     }
 
     public static String getImei() {

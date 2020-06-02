@@ -20,8 +20,6 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONException;
-import com.alibaba.fastjson.JSONObject;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -59,7 +57,7 @@ public class NotificationMonitorService extends NotificationListenerService {
 
     public void onCreate() {
         super.onCreate();
-        int version = AppUtil.getVersionCode(this);
+        String version = AppUtil.getVersionName(this);
 
         Toast.makeText(getApplicationContext(), "启动服务", Toast.LENGTH_LONG).show();
         //支付宝

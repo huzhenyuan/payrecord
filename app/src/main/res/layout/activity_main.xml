@@ -11,7 +11,9 @@
         android:id="@+id/notification_switch"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="30dp"
+        android:paddingLeft="30dp"
+        android:paddingTop="10dp"
+        android:paddingRight="30dp"
         android:text="@string/action_to_privileges"
         android:textOff="@string/textOff"
         android:textOn="@string/textOn" />
@@ -20,7 +22,9 @@
         android:id="@+id/pay_service_switch"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="30dp"
+        android:paddingLeft="30dp"
+        android:paddingTop="10dp"
+        android:paddingRight="30dp"
         android:text="@string/action_to_open"
         android:textOff="@string/textOff"
         android:textOn="@string/textOn" />
@@ -34,14 +38,6 @@
     <!--        android:textOff="@string/textOff"-->
     <!--        android:textOn="@string/textOn" />-->
 
-    <Button
-        android:id="@+id/btn_log"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="30dp"
-        android:background="@android:color/holo_blue_dark"
-        android:text="@string/action_to_log"
-        android:textStyle="bold" />
 
     <EditText
         android:id="@+id/tv_device_imei"
@@ -64,10 +60,30 @@
         android:id="@+id/tip"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="30dp"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
         android:lineSpacingExtra="4sp"
         android:text="@string/tips"
         android:textAlignment="viewStart" />
 
+    <TextView
+        android:id="@+id/info"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        android:lineSpacingExtra="4sp"
+        android:textAlignment="viewStart" />
+
+    <Button
+        android:id="@+id/btn_log"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="30dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginRight="30dp"
+        android:background="@android:color/holo_blue_dark"
+        android:text="@string/action_to_log"
+        android:textStyle="bold" />
 
 </LinearLayout>
