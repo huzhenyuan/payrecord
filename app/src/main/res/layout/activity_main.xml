@@ -11,9 +11,7 @@
         android:id="@+id/notification_switch"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingLeft="30dp"
-        android:paddingTop="10dp"
-        android:paddingRight="30dp"
+        android:padding="10dp"
         android:text="@string/action_to_privileges"
         android:textOff="@string/textOff"
         android:textOn="@string/textOn" />
@@ -22,9 +20,7 @@
         android:id="@+id/pay_service_switch"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingLeft="30dp"
-        android:paddingTop="10dp"
-        android:paddingRight="30dp"
+        android:padding="10dp"
         android:text="@string/action_to_open"
         android:textOff="@string/textOff"
         android:textOn="@string/textOn" />
@@ -43,16 +39,14 @@
         android:id="@+id/tv_device_imei"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="30dp"
-        android:layout_marginRight="30dp"
-        android:hint="请输入IMEI" />
+        android:padding="10dp"
+        android:hint="请输入IMEI (必须唯一，打电话输入*#06#)" />
 
     <Button
         android:id="@+id/btn_imei"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="30dp"
-        android:layout_marginRight="30dp"
+        android:padding="10dp"
         android:text="保存IMEI"
         android:textStyle="bold" />
 
@@ -60,8 +54,7 @@
         android:id="@+id/tip"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="30dp"
-        android:layout_marginRight="30dp"
+        android:padding="10dp"
         android:lineSpacingExtra="4sp"
         android:text="@string/tips"
         android:textAlignment="viewStart" />
@@ -70,8 +63,7 @@
         android:id="@+id/info"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="30dp"
-        android:layout_marginRight="30dp"
+        android:padding="10dp"
         android:lineSpacingExtra="4sp"
         android:textAlignment="viewStart" />
 
@@ -79,9 +71,7 @@
         android:id="@+id/btn_log"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="30dp"
-        android:layout_marginTop="10dp"
-        android:layout_marginRight="30dp"
+        android:padding="10dp"
         android:background="@android:color/holo_blue_dark"
         android:text="@string/action_to_log"
         android:textStyle="bold" />

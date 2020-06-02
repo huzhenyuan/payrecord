@@ -22,6 +22,7 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.List;
+import java.util.Random;
 
 import z.p.data.DaoMaster;
 import z.p.data.OrderEntity;
@@ -138,8 +139,12 @@ public class MainActivity extends AppCompatActivity {
         StringBuffer sb = new StringBuffer();
         sb.append("VERSION")
                 .append(AppUtil.getVersionName(this))
-                .append(System.lineSeparator())
-                .append(Const.SERVER.replace(".","").replace("http://",""))
+                .append(":")
+                .append(new Random().nextInt(1000))
+                .append(Const.SERVER.replace(".","-")
+                        .replace("/","-")
+                        .replace(":","-")
+                        .replace("http",""))
                 .append(System.lineSeparator())
                 .append(Const.MEMBER_ID)
                 .append(System.lineSeparator());
