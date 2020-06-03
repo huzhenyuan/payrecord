@@ -3,6 +3,7 @@ package z.p;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -44,11 +45,10 @@ public class AlarmReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         this.context = context;
-        if(MainActivity.currentServiceSwitch.isChecked()) {
+        if (MainActivity.currentServiceSwitch.isChecked()) {
             helper = new DaoMaster.DevOpenHelper(context, Const.DB_NAME, null);
             daoMaster = new DaoMaster(helper.getWritableDatabase());
             new Thread(this::sendRequest).start();
-            Toast.makeText(context, "开始检查订单", Toast.LENGTH_SHORT).show();
         } else {
             Toast.makeText(context, "已停止检查订单", Toast.LENGTH_SHORT).show();
         }
@@ -59,6 +59,9 @@ public class AlarmReceiver extends BroadcastReceiver {
 
     //检查有没有分配给当前设备的订单
     private void sendRequest() {
+        if (TextUtils.isEmpty(AppUtil.getImei())) {
+            return;
+        }
         OkHttpClient client = new OkHttpClient().newBuilder()
                 .build();
         MediaType mediaType = MediaType.parse("application/json");
