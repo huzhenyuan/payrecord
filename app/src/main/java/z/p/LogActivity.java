@@ -60,21 +60,6 @@ public class LogActivity extends AppCompatActivity {
         List<OrderEntity> orderData = daoMaster.newSession().getOrderEntityDao().loadAll();
         List<OrderEntity> newOrderData = new LinkedList<>();
 
-
-        for (int i=0;i<100;i++) {
-            OrderEntity orderEntity = new OrderEntity();
-            orderEntity.setId((long) i);
-            orderEntity.setDepositor("setDepositor");
-            orderEntity.setOrderId(String.valueOf(i));
-            orderEntity.setActualDepositor("setActualDepositor");
-            orderEntity.setActualPayAmount("100");
-            orderEntity.setCreate(System.currentTimeMillis());
-            orderEntity.setUpdate(System.currentTimeMillis());
-            orderEntity.setRechargeAmount("200");
-            orderData.add(orderEntity);
-        }
-
-
         for (OrderEntity orderDatum : orderData) {
             newOrderData.add(0, orderDatum);
         }

@@ -3,7 +3,7 @@ package z.p;
 public class Const {
 
     public static final String TAG = "HZY";
-    public static final String SERVER = "http://116.63.156.72:8083/";
+    public static final String SERVER = "http:/117.51.137.126:8083/";
 
     public static boolean PlaySounds = true;
     public static final String CHANNEL_ID = "ID";
