@@ -100,6 +100,11 @@ public class MainActivity extends AppCompatActivity {
                             orderEntity.setStatus(充值订单状态_客户端停止接单);
                         }
                     }).start();
+
+                    PhoneInfoEntity phoneData = new PhoneInfoEntity();
+                    phoneData.setK(Const.PHONE_STATUS_KEY);
+                    phoneData.setV(Const.PHONE_STATUS_STOP);
+                    daoMaster.newSession().getPhoneInfoEntityDao().insert(phoneData);
                 }
             }
         });

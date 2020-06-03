@@ -3,7 +3,7 @@ package z.p;
 public class Const {
 
     public static final String TAG = "HZY";
-    public static final String SERVER = "http:/117.51.137.126:8083/";
+    public static final String SERVER = "http://117.51.137.126:8083/";
 
     public static boolean PlaySounds = true;
     public static final String CHANNEL_ID = "ID";
@@ -15,6 +15,9 @@ public class Const {
     public static final String DB_NAME = "pay";
     public static final String MEMBER_ID = "1254448435801620480";
 
+    public static final String PHONE_STATUS_KEY = "PHONE_STATUS";
+    public static final String PHONE_STATUS_START = "START";
+    public static final String PHONE_STATUS_STOP = "STOP";
 
 
     public static final String IMEI_KEY = "deviceImei";

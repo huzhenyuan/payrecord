@@ -48,6 +48,7 @@ public class NotificationMonitorService extends NotificationListenerService {
 
     public long lastTimePosted = System.currentTimeMillis();
     private Pattern pAlipay;
+    private Pattern pAlipay2;
 
     private MediaPlayer mediaPlayer;
     private PowerManager.WakeLock wakeLock;
@@ -63,6 +64,9 @@ public class NotificationMonitorService extends NotificationListenerService {
         //支付宝
         String pattern = "(\\S*)通过扫码向你付款([\\d\\.]+)元";
         pAlipay = Pattern.compile(pattern);
+        //支付宝2
+        String pattern2 = "成功收款([\\d\\.]+)元";
+        pAlipay2 = Pattern.compile(pattern2);
 
         mediaPlayer = MediaPlayer.create(this, R.raw.payrecv);
         MediaPlayer payNetWorkError = MediaPlayer.create(this, R.raw.networkerror);
@@ -74,14 +78,14 @@ public class NotificationMonitorService extends NotificationListenerService {
             NotificationChannel notificationChannel = notificationManager.getNotificationChannel(Const.CHANNEL_ID);
             if (notificationChannel == null) {
                 notificationChannel = new NotificationChannel(Const.CHANNEL_ID, "payRecord", NotificationManager.IMPORTANCE_DEFAULT);
-                notificationChannel.setDescription("个人支付的监控");
+                notificationChannel.setDescription("支付记录的监控");
                 notificationManager.createNotificationChannel(notificationChannel);
             }
         }
         NotificationCompat.Builder nb = new NotificationCompat.Builder(this, Const.CHANNEL_ID);//
 
         nb.setContentTitle("PayRecord").setTicker("PayRecord个人支付").setSmallIcon(R.drawable.ic_monetization_on_black_24dp);
-        nb.setContentText("个人支付运行中.请保持此通知一直存在");
+        nb.setContentText("支付记录运行中.请保持此通知一直存在");
         nb.setWhen(System.currentTimeMillis());
         Notification notification = nb.build();
         startForeground(1, notification);
@@ -132,18 +136,32 @@ public class NotificationMonitorService extends NotificationListenerService {
             return;
         }
         this.lastTimePosted = System.currentTimeMillis();
-        if (pkgName.equals("com.eg.android.AlipayGphone")) {
+        if (true || pkgName.equals("com.eg.android.AlipayGphone")) {
             do {
-                Matcher m = pAlipay.matcher(text);
-                if (m.find()) {
-                    String uname = m.group(1);
-                    String money = m.group(2);
+                {
+                    Matcher m = pAlipay.matcher(text);
+                    if (m.find()) {
+                        String uname = m.group(1);
+                        String money = m.group(2);
 
-                    BigDecimal actualPayAmount = new BigDecimal(money).setScale(2, RoundingMode.FLOOR);
-                    new Thread(() -> {
-                        postMethod(actualPayAmount.toPlainString(), uname);
-                    }).start();
-                    break;
+                        BigDecimal actualPayAmount = new BigDecimal(money).setScale(2, RoundingMode.FLOOR);
+                        new Thread(() -> {
+                            postMethod(actualPayAmount.toPlainString(), uname);
+                        }).start();
+                        break;
+                    }
+                }
+                {
+                    Matcher m2 = pAlipay2.matcher(text);
+                    if (m2.find()) {
+                        String money = m2.group(1);
+
+                        BigDecimal actualPayAmount = new BigDecimal(money).setScale(2, RoundingMode.FLOOR);
+                        new Thread(() -> {
+                            postMethod(actualPayAmount.toPlainString(), "未知");
+                        }).start();
+                        break;
+                    }
                 }
                 Log.w(Const.TAG, "匹配失败" + text);
             } while (false);
