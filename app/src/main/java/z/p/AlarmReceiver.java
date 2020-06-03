@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.alibaba.fastjson.JSON;
 
@@ -36,21 +37,28 @@ public class AlarmReceiver extends BroadcastReceiver {
 
     private Context context;
 
+    private DaoMaster.DevOpenHelper helper;
+    private DaoMaster daoMaster;
+
     // TODO 清理老的订单
-    // TODO 循环检查有没有分配给当前设备的订单
-    // 如果有， 本地存下来，然后通知服务器就绪
-    // 如果没有，服务器记录设备在线的信息
     @Override
     public void onReceive(Context context, Intent intent) {
         this.context = context;
-        new Thread(this::sendRequest).start();
+        if(MainActivity.currentServiceSwitch.isChecked()) {
+            helper = new DaoMaster.DevOpenHelper(context, Const.DB_NAME, null);
+            daoMaster = new DaoMaster(helper.getWritableDatabase());
+            new Thread(this::sendRequest).start();
+            Toast.makeText(context, "开始检查订单", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(context, "已停止检查订单", Toast.LENGTH_SHORT).show();
+        }
+
         Intent startIntent = new Intent(context, AlarmService.class);
         context.startService(startIntent);
     }
 
     //检查有没有分配给当前设备的订单
     private void sendRequest() {
-
         OkHttpClient client = new OkHttpClient().newBuilder()
                 .build();
         MediaType mediaType = MediaType.parse("application/json");

@@ -39,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
 
     private Switch notification_switch;
     private Switch payService_switch;
+    public static Switch currentServiceSwitch;
     private TextView tv_device_imei;
     private TextView tip;
     private TextView info;
@@ -73,6 +74,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        helper = new DaoMaster.DevOpenHelper(this, Const.DB_NAME, null);
+        daoMaster = new DaoMaster(helper.getWritableDatabase());
 
         notification_switch = findViewById(R.id.notification_switch);
         notification_switch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -100,14 +103,10 @@ public class MainActivity extends AppCompatActivity {
                             orderEntity.setStatus(充值订单状态_客户端停止接单);
                         }
                     }).start();
-
-                    PhoneInfoEntity phoneData = new PhoneInfoEntity();
-                    phoneData.setK(Const.PHONE_STATUS_KEY);
-                    phoneData.setV(Const.PHONE_STATUS_STOP);
-                    daoMaster.newSession().getPhoneInfoEntityDao().insert(phoneData);
                 }
             }
         });
+        currentServiceSwitch = payService_switch;
 
 
         Button btn_log = findViewById(R.id.btn_log);
@@ -172,10 +171,8 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         checkStatus();
         EventBus.getDefault().register(this);
-        new Thread(() -> {
 
-            helper = new DaoMaster.DevOpenHelper(this, Const.DB_NAME, null);
-            daoMaster = new DaoMaster(helper.getWritableDatabase());
+        new Thread(() -> {
 
             List<PhoneInfoEntity> phoneDataList = daoMaster.newSession().getPhoneInfoEntityDao().loadAll();
             for (PhoneInfoEntity phoneData : phoneDataList) {
@@ -211,6 +208,7 @@ public class MainActivity extends AppCompatActivity {
         // 手动关闭服务之后 需要重新设置服务 所以在onCreate处调用
         // toggleNotificationListenerService();
         payService_switch.setChecked(true);
+
     }
 
     @Override

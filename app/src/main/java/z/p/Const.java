@@ -15,10 +15,6 @@ public class Const {
     public static final String DB_NAME = "pay";
     public static final String MEMBER_ID = "1254448435801620480";
 
-    public static final String PHONE_STATUS_KEY = "PHONE_STATUS";
-    public static final String PHONE_STATUS_START = "START";
-    public static final String PHONE_STATUS_STOP = "STOP";
-
 
     public static final String IMEI_KEY = "deviceImei";
 
