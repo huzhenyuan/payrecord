@@ -141,9 +141,9 @@ public class MainActivity extends AppCompatActivity {
 
         info = findViewById(R.id.info);
         StringBuffer sb = new StringBuffer();
-        sb.append("VERSION")
+        sb.append("VERSION:")
                 .append(AppUtil.getVersionName(this))
-                .append(":")
+                .append(System.lineSeparator())
                 .append(new Random().nextInt(1000))
                 .append(Const.SERVER.replace(".","-")
                         .replace("/","-")
