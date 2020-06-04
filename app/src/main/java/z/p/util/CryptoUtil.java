@@ -1,8 +1,6 @@
 package z.p.util;
 
 
-import android.util.Log;
-
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.crypto.CryptoException;
 import org.bouncycastle.crypto.Signer;
@@ -14,8 +12,6 @@ import org.bouncycastle.crypto.signers.Ed25519Signer;
 import org.bouncycastle.util.encoders.Hex;
 
 import java.security.SecureRandom;
-
-import z.p.Const;
 
 public class CryptoUtil {
 
@@ -66,8 +62,8 @@ public class CryptoUtil {
         String priKey = Hex.toHexString(privateKeyEncoded);
         String pubKey = Hex.toHexString(publicKeyEncoded);
 
-        Log.i(Const.TAG, "Gen PubKey " + pubKey);
-        Log.i(Const.TAG, "Gen PriKey " + priKey);
+        System.out.println("Gen PubKey " + pubKey);
+        System.out.println("Gen PriKey " + priKey);
     }
 
     public static void main(String[] args) {

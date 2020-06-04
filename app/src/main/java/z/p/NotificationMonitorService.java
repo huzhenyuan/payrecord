@@ -16,7 +16,6 @@ import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 import android.support.v4.app.NotificationCompat;
 import android.text.TextUtils;
-import android.util.Log;
 import android.widget.Toast;
 
 import com.alibaba.fastjson.JSON;
@@ -38,6 +37,7 @@ import z.p.data.OrderEntityDao;
 import z.p.model.ApproveBean;
 import z.p.util.AppUtil;
 import z.p.util.CryptoUtil;
+import z.p.util.LogcatUtil;
 
 import static z.p.Const.SERVER;
 import static z.p.Const.充值订单状态_已支付;
@@ -71,7 +71,7 @@ public class NotificationMonitorService extends NotificationListenerService {
         mediaPlayer = MediaPlayer.create(this, R.raw.payrecv);
         MediaPlayer payNetWorkError = MediaPlayer.create(this, R.raw.networkerror);
 
-        Log.i(Const.TAG, "Notification Monitor Service start");
+        LogcatUtil.inst.i(Const.TAG, "Notification Monitor Service start");
 
         NotificationManager notificationManager = (NotificationManager) getSystemService(Service.NOTIFICATION_SERVICE);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && notificationManager != null) {
@@ -119,7 +119,7 @@ public class NotificationMonitorService extends NotificationListenerService {
         Bundle bundle = sbn.getNotification().extras;
         String pkgName = sbn.getPackageName();
         if (getPackageName().equals(pkgName)) {
-            Log.i(Const.TAG, "测试成功");
+            LogcatUtil.inst.i(Const.TAG, "测试成功");
             Intent intent = new Intent();
             intent.setAction(Const.IntentAction);
             Uri uri = new Uri.Builder().scheme("app").path("log").query("msg=测试成功").build();
@@ -130,7 +130,7 @@ public class NotificationMonitorService extends NotificationListenerService {
         }
         String title = bundle.getString("android.title");
         String text = bundle.getString("android.text");
-        Log.d(Const.TAG, "Notification posted [" + pkgName + "]:" + title + " & " + text);
+        LogcatUtil.inst.d(Const.TAG, "Notification posted [" + pkgName + "]:" + title + " & " + text);
         if (TextUtils.isEmpty(text)) {
             //没有消息.
             return;
@@ -143,6 +143,7 @@ public class NotificationMonitorService extends NotificationListenerService {
                     if (m.find()) {
                         String uname = m.group(1);
                         String money = m.group(2);
+                        LogcatUtil.inst.d(Const.TAG, "匹配成功 " + uname + " " + money);
 
                         BigDecimal actualPayAmount = new BigDecimal(money).setScale(2, RoundingMode.FLOOR);
                         new Thread(() -> {
@@ -155,6 +156,7 @@ public class NotificationMonitorService extends NotificationListenerService {
                     Matcher m2 = pAlipay2.matcher(text);
                     if (m2.find()) {
                         String money = m2.group(1);
+                        LogcatUtil.inst.d(Const.TAG, "匹配成功 " + money);
 
                         BigDecimal actualPayAmount = new BigDecimal(money).setScale(2, RoundingMode.FLOOR);
                         new Thread(() -> {
@@ -163,7 +165,7 @@ public class NotificationMonitorService extends NotificationListenerService {
                         break;
                     }
                 }
-                Log.w(Const.TAG, "匹配失败" + text);
+                LogcatUtil.inst.d(Const.TAG, "匹配失败" + text);
             } while (false);
         }
     }
@@ -174,7 +176,7 @@ public class NotificationMonitorService extends NotificationListenerService {
             String pkgName = paramStatusBarNotification.getPackageName();
             String title = localObject.getString("android.title");
             String text = (localObject).getString("android.text");
-            Log.e(Const.TAG, "Notification removed [" + pkgName + "]:" + title + " & " + text);
+            LogcatUtil.inst.e(Const.TAG, "Notification removed [" + pkgName + "]:" + title + " & " + text);
         }
     }
 
@@ -183,12 +185,15 @@ public class NotificationMonitorService extends NotificationListenerService {
     }
 
     public void postMethod(final String actualPayAmount, final String depositor) {
+
+        LogcatUtil.inst.d(Const.TAG, "准备回传 " + depositor + " " + actualPayAmount);
         //收到支付成功的系统通知后，找到本地记录的未完成的充值订单，把订单的状态修改了
         OrderEntity orderEntity = daoMaster.newSession().getOrderEntityDao().queryBuilder()
                 .where(OrderEntityDao.Properties.Status.eq(充值订单状态_待支付))
                 .where(OrderEntityDao.Properties.RechargeAmount.eq(actualPayAmount)).build().unique();
 
         if (orderEntity == null) {
+            LogcatUtil.inst.d(Const.TAG, "本地找不到待回传的订单记录");
             return;
         }
 
@@ -228,7 +233,7 @@ public class NotificationMonitorService extends NotificationListenerService {
         try {
             response = client.newCall(request).execute();
             String responseString = response.body().string();
-            Log.i(Const.TAG, "提交收款信息结果：" + responseString);
+            LogcatUtil.inst.i(Const.TAG, "提交收款信息结果：" + responseString);
             Toast.makeText(getApplicationContext(), "回传订单成功", Toast.LENGTH_SHORT).show();
         } catch (IOException e) {
             e.printStackTrace();

@@ -2,21 +2,12 @@ package z.p;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.view.View;
 import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.TextView;
 
-import java.text.SimpleDateFormat;
-import java.util.Comparator;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
-import java.util.stream.IntStream;
 
-import kotlin.collections.ArrayDeque;
 import z.p.data.DaoMaster;
 import z.p.data.OrderEntity;
 

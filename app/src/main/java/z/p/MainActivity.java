@@ -43,9 +43,9 @@ import static z.p.Const.充值订单状态_待支付;
 
 public class MainActivity extends AppCompatActivity {
 
+    public static Switch currentServiceSwitch;
     private Switch notification_switch;
     private Switch payService_switch;
-    public static Switch currentServiceSwitch;
     private TextView tv_device_imei;
     private TextView tip;
     private TextView info;
@@ -53,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
 
     private DaoMaster.DevOpenHelper helper;
     private DaoMaster daoMaster;
+    private boolean enabledPrivileges;
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onHandleMessageEvent(MessageEvent messageEvent) {
@@ -222,8 +223,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }).start();
     }
-
-    private boolean enabledPrivileges;
 
     private void checkStatus() {
         //权限开启.才能启动服务

@@ -17,6 +17,7 @@ public class AppUtil {
         }
         return versionName;
     }
+
     public static int getVersionCode(Context mContext) {
         int versionCode = 0;
         try {

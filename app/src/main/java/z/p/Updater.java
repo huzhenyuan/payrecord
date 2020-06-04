@@ -1,13 +1,8 @@
 package z.p;
 
 import android.content.Context;
-import android.util.Log;
-import android.view.View;
 
 import com.alibaba.fastjson.JSON;
-import com.king.app.dialog.AppDialog;
-import com.king.app.dialog.AppDialogConfig;
-import com.king.app.updater.AppUpdater;
 
 import org.greenrobot.eventbus.EventBus;
 
@@ -17,7 +12,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import z.p.event.UpdateEvent;
 import z.p.model.SimpleResponse;
-import z.p.util.AppUtil;
+import z.p.util.LogcatUtil;
 
 import static z.p.Const.SERVER;
 
@@ -47,7 +42,7 @@ public class Updater {
             versionCode = Integer.parseInt(resp.getData());
 
         } catch (Exception e) {
-            Log.i(Const.TAG, "Failed to checkUpdate " + e.toString());
+            LogcatUtil.inst.i(Const.TAG, "Failed to checkUpdate " + e.toString());
             e.printStackTrace();
         }
 

@@ -1,86 +1,87 @@
 package z.p.model;
 
-import java.util.List;
 import com.alibaba.fastjson.annotation.JSONField;
 
-public class Data{
+import java.util.List;
 
-	@JSONField(name="total")
-	private int total;
+public class Data {
 
-	@JSONField(name="size")
-	private int size;
+    @JSONField(name = "total")
+    private int total;
 
-	@JSONField(name="totalPage")
-	private int totalPage;
+    @JSONField(name = "size")
+    private int size;
 
-	@JSONField(name="pageSize")
-	private int pageSize;
+    @JSONField(name = "totalPage")
+    private int totalPage;
 
-	@JSONField(name="pageNum")
-	private int pageNum;
+    @JSONField(name = "pageSize")
+    private int pageSize;
 
-	@JSONField(name="content")
-	private List<ContentItem> content;
+    @JSONField(name = "pageNum")
+    private int pageNum;
 
-	public void setTotal(int total){
-		this.total = total;
-	}
+    @JSONField(name = "content")
+    private List<ContentItem> content;
 
-	public int getTotal(){
-		return total;
-	}
+    public int getTotal() {
+        return total;
+    }
 
-	public void setSize(int size){
-		this.size = size;
-	}
+    public void setTotal(int total) {
+        this.total = total;
+    }
 
-	public int getSize(){
-		return size;
-	}
+    public int getSize() {
+        return size;
+    }
 
-	public void setTotalPage(int totalPage){
-		this.totalPage = totalPage;
-	}
+    public void setSize(int size) {
+        this.size = size;
+    }
 
-	public int getTotalPage(){
-		return totalPage;
-	}
+    public int getTotalPage() {
+        return totalPage;
+    }
 
-	public void setPageSize(int pageSize){
-		this.pageSize = pageSize;
-	}
+    public void setTotalPage(int totalPage) {
+        this.totalPage = totalPage;
+    }
 
-	public int getPageSize(){
-		return pageSize;
-	}
+    public int getPageSize() {
+        return pageSize;
+    }
 
-	public void setPageNum(int pageNum){
-		this.pageNum = pageNum;
-	}
+    public void setPageSize(int pageSize) {
+        this.pageSize = pageSize;
+    }
 
-	public int getPageNum(){
-		return pageNum;
-	}
+    public int getPageNum() {
+        return pageNum;
+    }
 
-	public void setContent(List<ContentItem> content){
-		this.content = content;
-	}
+    public void setPageNum(int pageNum) {
+        this.pageNum = pageNum;
+    }
 
-	public List<ContentItem> getContent(){
-		return content;
-	}
+    public List<ContentItem> getContent() {
+        return content;
+    }
 
-	@Override
- 	public String toString(){
-		return 
-			"Data{" + 
-			"total = '" + total + '\'' + 
-			",size = '" + size + '\'' + 
-			",totalPage = '" + totalPage + '\'' + 
-			",pageSize = '" + pageSize + '\'' + 
-			",pageNum = '" + pageNum + '\'' + 
-			",content = '" + content + '\'' + 
-			"}";
-		}
+    public void setContent(List<ContentItem> content) {
+        this.content = content;
+    }
+
+    @Override
+    public String toString() {
+        return
+                "Data{" +
+                        "total = '" + total + '\'' +
+                        ",size = '" + size + '\'' +
+                        ",totalPage = '" + totalPage + '\'' +
+                        ",pageSize = '" + pageSize + '\'' +
+                        ",pageNum = '" + pageNum + '\'' +
+                        ",content = '" + content + '\'' +
+                        "}";
+    }
 }

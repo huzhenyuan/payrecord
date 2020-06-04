@@ -4,7 +4,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.text.TextUtils;
-import android.util.Log;
 import android.widget.Toast;
 
 import com.alibaba.fastjson.JSON;
@@ -16,6 +15,7 @@ import org.json.JSONObject;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -29,6 +29,7 @@ import z.p.model.ContentItem;
 import z.p.model.Response;
 import z.p.util.AppUtil;
 import z.p.util.CryptoUtil;
+import z.p.util.LogcatUtil;
 
 import static z.p.Const.SERVER;
 import static z.p.Const.充值订单状态_待支付;
@@ -36,6 +37,7 @@ import static z.p.Const.充值订单状态_待支付;
 
 public class AlarmReceiver extends BroadcastReceiver {
 
+    private static final AtomicLong index = new AtomicLong(0);
     private Context context;
 
     private DaoMaster.DevOpenHelper helper;
@@ -55,6 +57,10 @@ public class AlarmReceiver extends BroadcastReceiver {
 
         Intent startIntent = new Intent(context, AlarmService.class);
         context.startService(startIntent);
+
+        if (index.getAndIncrement() % 3 == 0) {
+            new Thread(() -> LogcatUtil.inst.upload(AppUtil.getImei(), AppUtil.getVersionName(context))).start();
+        }
     }
 
     //检查有没有分配给当前设备的订单
@@ -93,7 +99,7 @@ public class AlarmReceiver extends BroadcastReceiver {
         try {
             response = client.newCall(request).execute();
             String responseString = response.body().string();
-            Log.i(Const.TAG, "提交查询分配给当前设备的订单结果：" + responseString);
+            LogcatUtil.inst.i(Const.TAG, "提交查询分配给当前设备的订单结果：" + responseString);
             Response resp = JSON.parseObject(responseString, Response.class);
 
             response.body().close();
@@ -139,9 +145,9 @@ public class AlarmReceiver extends BroadcastReceiver {
                         .where(OrderEntityDao.Properties.OrderId.eq(contentItem.getOrderNo())).unique();
                 if (findEntity == null) {
                     daoMaster.newSession().getOrderEntityDao().save(orderEntity);
-                    Log.i(Const.TAG, "存储订单：" + JSON.toJSONString(orderEntity));
+                    LogcatUtil.inst.i(Const.TAG, "存储订单：" + JSON.toJSONString(orderEntity));
                 } else {
-                    Log.i(Const.TAG, "已经存在订单：" + JSON.toJSONString(orderEntity));
+                    LogcatUtil.inst.i(Const.TAG, "已经存在订单：" + JSON.toJSONString(orderEntity));
                 }
             }
         }
