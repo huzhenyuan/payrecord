@@ -17,6 +17,16 @@ public class AppUtil {
         }
         return versionName;
     }
+    public static int getVersionCode(Context mContext) {
+        int versionCode = 0;
+        try {
+            versionCode = mContext.getPackageManager().
+                    getPackageInfo(mContext.getPackageName(), 0).versionCode;
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+        return versionCode;
+    }
 
     public static String getImei() {
         return imei;

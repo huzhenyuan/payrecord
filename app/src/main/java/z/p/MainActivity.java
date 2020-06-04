@@ -17,6 +17,10 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.king.app.dialog.AppDialog;
+import com.king.app.dialog.AppDialogConfig;
+import com.king.app.updater.AppUpdater;
+
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -30,8 +34,10 @@ import z.p.data.OrderEntityDao;
 import z.p.data.PhoneInfoEntity;
 import z.p.event.MessageEvent;
 import z.p.event.NetworkEvent;
+import z.p.event.UpdateEvent;
 import z.p.util.AppUtil;
 
+import static z.p.Const.SERVER;
 import static z.p.Const.充值订单状态_客户端停止接单;
 import static z.p.Const.充值订单状态_待支付;
 
@@ -67,6 +73,29 @@ public class MainActivity extends AppCompatActivity {
         } else {
             tip.setBackgroundColor(Color.RED);
         }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onHandleUpdateEvent(UpdateEvent updateEvent) {
+
+        int localVersionCode = AppUtil.getVersionCode(getApplicationContext());
+        if (localVersionCode >= updateEvent.getVersionCode()) {
+            return;
+        }
+
+        AppDialogConfig config = new AppDialogConfig();
+        config.setTitle("PayRecord升级")
+                .setOk("确认")
+                .setContent("1、上传系统日志")
+                .setOnClickOk(v -> {
+                    new AppUpdater.Builder()
+                            .serUrl(SERVER + "update/app")
+                            .setFilename("ParRecord.apk")
+                            .build(MainActivity.this)
+                            .start();
+                    AppDialog.INSTANCE.dismissDialog();
+                });
+        AppDialog.INSTANCE.showDialog(MainActivity.this, config);
     }
 
     @Override
@@ -118,6 +147,14 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        Button btn_update = findViewById(R.id.btn_update);
+        btn_update.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                new Thread(() -> Updater.checkUpdate(getApplicationContext())).start();
+            }
+        });
+
         toggleNotificationListenerService();
 
         checkStatus();
@@ -145,10 +182,10 @@ public class MainActivity extends AppCompatActivity {
                 .append(AppUtil.getVersionName(this))
                 .append(System.lineSeparator())
                 .append(new Random().nextInt(1000))
-                .append(Const.SERVER.replace(".","-")
-                        .replace("/","-")
-                        .replace(":","-")
-                        .replace("http",""))
+                .append(Const.SERVER.replace(".", "-")
+                        .replace("/", "-")
+                        .replace(":", "-")
+                        .replace("http", ""))
                 .append(System.lineSeparator())
                 .append(Const.MEMBER_ID)
                 .append(System.lineSeparator());

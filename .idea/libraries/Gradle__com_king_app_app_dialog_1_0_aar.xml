@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="Gradle: com.king.app:app-dialog:1.0@aar">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/c4de4f718f51575a0517f571ed20424f/jars/classes.jar!/" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/c4de4f718f51575a0517f571ed20424f/res" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.king.app/app-dialog/1.0/c32c58eb618ed0ee9a5f634932fb2f295dc2d6ef/app-dialog-1.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

@@ -107,6 +107,8 @@
     <orderEntry type="library" name="Gradle: org.jetbrains:annotations:13.0@jar" level="project" />
     <orderEntry type="library" name="Gradle: org.greenrobot:eventbus:3.0.0@jar" level="project" />
     <orderEntry type="library" name="Gradle: com.alibaba:fastjson:1.2.51@jar" level="project" />
+    <orderEntry type="library" name="Gradle: com.king.app:app-updater:1.0@aar" level="project" />
+    <orderEntry type="library" name="Gradle: com.king.app:app-dialog:1.0@aar" level="project" />
     <orderEntry type="library" name="Gradle: com.android.support:design:28.0.0@aar" level="project" />
     <orderEntry type="library" name="Gradle: com.android.support:appcompat-v7:28.0.0@aar" level="project" />
     <orderEntry type="library" name="Gradle: com.android.support:support-fragment:28.0.0@aar" level="project" />

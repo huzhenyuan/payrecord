@@ -5,6 +5,7 @@
     <string name="action_to_wx">微信</string>
     <string name="action_to_zfb">支付宝</string>
     <string name="action_to_log">日志记录</string>
+    <string name="action_to_update">检查更新</string>
     <string name="action_to_privileges">服务权限</string>
     <string name="action_open_setting">打开权限设置</string>
     <string name="action_to_mute">静音</string>
