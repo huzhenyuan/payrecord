@@ -136,7 +136,7 @@ public class NotificationMonitorService extends NotificationListenerService {
             return;
         }
         this.lastTimePosted = System.currentTimeMillis();
-        if (true || pkgName.equals("com.eg.android.AlipayGphone")) {
+        if (pkgName.equals("com.eg.android.AlipayGphone")) {
             do {
                 {
                     Matcher m = pAlipay.matcher(text);
