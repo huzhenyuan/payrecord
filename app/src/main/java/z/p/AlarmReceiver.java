@@ -33,6 +33,7 @@ import z.p.util.LogcatUtil;
 
 import static z.p.Const.SERVER;
 import static z.p.Const.充值订单状态_待支付;
+import static z.p.Const.充值订单状态_由于有新订单取消之前订单;
 
 
 public class AlarmReceiver extends BroadcastReceiver {
@@ -148,6 +149,15 @@ public class AlarmReceiver extends BroadcastReceiver {
                     LogcatUtil.inst.i(Const.TAG, "存储订单：" + JSON.toJSONString(orderEntity));
                 } else {
                     LogcatUtil.inst.i(Const.TAG, "已经存在订单：" + JSON.toJSONString(orderEntity));
+                }
+
+                List<OrderEntity> 其他待支付订单列表 = daoMaster.newSession().getOrderEntityDao().queryBuilder()
+                        .where(OrderEntityDao.Properties.OrderId.notEq(contentItem.getOrderNo()),
+                                OrderEntityDao.Properties.Status.eq(充值订单状态_待支付))
+                        .list();
+                for (OrderEntity oldOrderEntity : 其他待支付订单列表) {
+                    oldOrderEntity.setStatus(充值订单状态_由于有新订单取消之前订单);
+                    daoMaster.newSession().getOrderEntityDao().save(oldOrderEntity);
                 }
             }
         }

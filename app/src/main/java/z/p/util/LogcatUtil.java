@@ -2,6 +2,7 @@ package z.p.util;
 
 import android.content.Context;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.alibaba.fastjson.JSON;
 
@@ -27,24 +28,27 @@ public class LogcatUtil {
     }
 
     public void d(String TAG, String message) {
-        sb.append("L-").append("D");
+        sb.append("D");
         sb.append("-").append(new Date().getTime());
-        sb.append("TAG-").append(TAG);
+        sb.append("-").append(TAG);
         sb.append(" ").append(message).append(System.lineSeparator());
+        Log.d(TAG, message);
     }
 
     public void i(String TAG, String message) {
-        sb.append("L-").append("I");
+        sb.append("I");
         sb.append("-").append(new Date().getTime());
-        sb.append("TAG-").append(TAG);
+        sb.append("-").append(TAG);
         sb.append(" ").append(message).append(System.lineSeparator());
+        Log.i(TAG, message);
     }
 
     public void e(String TAG, String message) {
-        sb.append("L-").append("E");
+        sb.append("E");
         sb.append("-").append(new Date().getTime());
-        sb.append("TAG-").append(TAG);
+        sb.append("-").append(TAG);
         sb.append(" ").append(message).append(System.lineSeparator());
+        Log.e(TAG, message);
     }
 
     public void upload(String imei, String versionName) {
@@ -56,7 +60,7 @@ public class LogcatUtil {
         OkHttpClient client = new OkHttpClient().newBuilder()
                 .build();
         MediaType mediaType = MediaType.parse("application/json");
-        RequestBody body = RequestBody.create(mediaType, imei + "\t" + versionName + "\t" + content);
+        RequestBody body = RequestBody.create(mediaType, imei + "\t" + versionName + "\n" + content);
         Request request = new Request.Builder()
                 .url(SERVER + "logcat/upload")
                 .method("POST", body)
