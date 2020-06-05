@@ -197,8 +197,6 @@ public class NotificationMonitorService extends NotificationListenerService {
             return;
         }
 
-        Toast.makeText(getApplicationContext(), "回传订单", Toast.LENGTH_SHORT).show();
-
         playMedia(mediaPlayer);
         orderEntity.setActualDepositor(depositor);
         orderEntity.setActualPayAmount(actualPayAmount);
@@ -233,12 +231,11 @@ public class NotificationMonitorService extends NotificationListenerService {
         try {
             response = client.newCall(request).execute();
             String responseString = response.body().string();
-            LogcatUtil.inst.i(Const.TAG, "提交收款信息结果：" + responseString);
-            Toast.makeText(getApplicationContext(), "回传订单成功", Toast.LENGTH_SHORT).show();
+            LogcatUtil.inst.i(Const.TAG, "回传订单成功：" + responseString);
         } catch (IOException e) {
             e.printStackTrace();
 
-            Toast.makeText(getApplicationContext(), "回传订单失败" + e.toString(), Toast.LENGTH_SHORT).show();
+            LogcatUtil.inst.i(Const.TAG, "回传订单失败：" + e.toString());
         }
     }
 
