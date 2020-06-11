@@ -24,7 +24,6 @@ import com.king.app.dialog.AppDialogConfig;
 import com.king.app.updater.AppUpdater;
 import com.robin.lazy.sms.SmsObserver;
 import com.robin.lazy.sms.SmsResponseCallback;
-import com.robin.lazy.sms.VerificationCodeSmsFilter;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -199,7 +198,7 @@ public class MainActivity extends AppCompatActivity implements SmsResponseCallba
                 .withListener(new PermissionListener() {
                     @Override
                     public void onPermissionGranted(PermissionGrantedResponse response) {
-                        smsObserver = new SmsObserver(MainActivity.this, MainActivity.this, new VerificationCodeSmsFilter("180"));
+                        smsObserver = new SmsObserver(MainActivity.this, MainActivity.this);
                         smsObserver.registerSMSObserver();
                         payService_switch.setChecked(true);
                         MyApplication.working = true;
@@ -228,8 +227,8 @@ public class MainActivity extends AppCompatActivity implements SmsResponseCallba
     }
 
     @Override
-    public void onCallbackSmsContent(String code) {
-//        textView.setText("短信验证码:"+code);
-    }
+    public void onCallbackSmsContent(String phone, String smsContent) {
 
+        //TODO 回传给服务器
+    }
 }

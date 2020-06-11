@@ -9,9 +9,6 @@ import z.p.util.LogcatUtil;
 public class MyApplication extends Application {
 
     public static boolean working = false;
-    private static MyApplication instances;
-    private static DaoMaster.DevOpenHelper helper;
-    private static DaoMaster daoMaster;
     private static DaoSession daoSession;
 
     public static DaoSession getDaoSession() {
@@ -21,14 +18,13 @@ public class MyApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        instances = this;
         setDatabase();
         LogcatUtil.inst.init(this);
     }
 
     private void setDatabase() {
-        helper = new DaoMaster.DevOpenHelper(this, Const.DB_NAME, null);
-        daoMaster = new DaoMaster(helper.getWritableDatabase());
+        DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(this, Const.DB_NAME, null);
+        DaoMaster daoMaster = new DaoMaster(helper.getWritableDatabase());
         daoSession = daoMaster.newSession();
     }
 

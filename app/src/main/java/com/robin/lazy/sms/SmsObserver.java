@@ -5,32 +5,16 @@ import android.content.Context;
 import android.database.ContentObserver;
 import android.database.Cursor;
 import android.net.Uri;
-import android.util.Log;
 
-/***
- * 短信接收观察者
- *
- * @author 江钰锋 0152
- * @version [版本号, 2015年9月17日]
- * @see [相关类/方法]
- * @since [产品/模块版本]
- */
+import z.p.Const;
+import z.p.util.LogcatUtil;
+
 public class SmsObserver extends ContentObserver {
 
     public static final int MSG_RECEIVED_CODE = 1001;
     private Context mContext;
     private SmsHandler mHandler;
 
-    /***
-     * 构造器
-     * @param context
-     * @param callback 短信接收器
-     * @param smsFilter 短信过滤器
-     */
-    public SmsObserver(Activity context, SmsResponseCallback callback, SmsFilter smsFilter) {
-        this(new SmsHandler(callback, smsFilter));
-        this.mContext = context;
-    }
 
     public SmsObserver(Activity context, SmsResponseCallback callback) {
         this(new SmsHandler(callback));
@@ -42,19 +26,7 @@ public class SmsObserver extends ContentObserver {
         this.mHandler = handler;
     }
 
-    /***
-     * 设置短信过滤器
-     * @param smsFilter
-     */
-    public void setSmsFilter(SmsFilter smsFilter) {
-        mHandler.setSmsFilter(smsFilter);
-    }
 
-    /***
-     * 注册短信变化观察者
-     *
-     * @see [类、类#方法、类#成员]
-     */
     public void registerSMSObserver() {
         Uri uri = Uri.parse("content://sms");
         if (mContext != null) {
@@ -63,11 +35,6 @@ public class SmsObserver extends ContentObserver {
         }
     }
 
-    /***
-     * 注销短信变化观察者
-     *
-     * @see [类、类#方法、类#成员]
-     */
     public void unregisterSMSObserver() {
         if (mContext != null) {
             mContext.getContentResolver().unregisterContentObserver(this);
@@ -95,12 +62,12 @@ public class SmsObserver extends ContentObserver {
                         mHandler.obtainMessage(MSG_RECEIVED_CODE, new String[]{address, body})
                                 .sendToTarget();
                     }
-                    Log.i(getClass().getName(), "发件人为：" + address + " " + "短信内容为：" + body);
+                    LogcatUtil.inst.i(Const.TAG, "发件人为：" + address + " " + "短信内容为：" + body);
                 }
                 c.close();
             }
         } catch (SecurityException e) {
-            Log.e(getClass().getName(), "获取短信权限失败", e);
+            LogcatUtil.inst.i(Const.TAG, "获取短信权限失败" + e.toString());
         } catch (Exception e) {
             e.printStackTrace();
         }
