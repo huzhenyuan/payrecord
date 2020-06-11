@@ -8,15 +8,6 @@
     tools:context="z.p.MainActivity">
 
     <Switch
-        android:id="@+id/notification_switch"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="10dp"
-        android:text="@string/action_to_privileges"
-        android:textOff="@string/textOff"
-        android:textOn="@string/textOn" />
-
-    <Switch
         android:id="@+id/pay_service_switch"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -25,22 +16,12 @@
         android:textOff="@string/textOff"
         android:textOn="@string/textOn" />
 
-    <!--    <Switch-->
-    <!--        android:id="@+id/mute_switch"-->
-    <!--        android:layout_width="match_parent"-->
-    <!--        android:layout_height="wrap_content"-->
-    <!--        android:padding="30dp"-->
-    <!--        android:text="@string/action_to_mute"-->
-    <!--        android:textOff="@string/textOff"-->
-    <!--        android:textOn="@string/textOn" />-->
-
-
     <EditText
         android:id="@+id/tv_device_imei"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="10dp"
-        android:hint="请输入IMEI (必须唯一，打电话输入*#06#)" />
+        android:hint="请输入IMEI (必须唯一，打电话输入*#06#)"
+        android:padding="10dp" />
 
     <Button
         android:id="@+id/btn_imei"
@@ -54,8 +35,8 @@
         android:id="@+id/tip"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="10dp"
         android:lineSpacingExtra="4sp"
+        android:padding="10dp"
         android:text="@string/tips"
         android:textAlignment="viewStart" />
 
@@ -63,16 +44,16 @@
         android:id="@+id/info"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="10dp"
         android:lineSpacingExtra="4sp"
+        android:padding="10dp"
         android:textAlignment="viewStart" />
 
     <Button
         android:id="@+id/btn_log"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="10dp"
         android:background="@android:color/holo_blue_dark"
+        android:padding="10dp"
         android:text="@string/action_to_log"
         android:textStyle="bold" />
 

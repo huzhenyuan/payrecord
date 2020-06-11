@@ -1,38 +1,41 @@
 package z.p;
 
-import android.content.ComponentName;
+import android.Manifest;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.os.Build;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
-import android.widget.CompoundButton;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.karumi.dexter.Dexter;
+import com.karumi.dexter.PermissionToken;
+import com.karumi.dexter.listener.PermissionDeniedResponse;
+import com.karumi.dexter.listener.PermissionGrantedResponse;
+import com.karumi.dexter.listener.PermissionRequest;
+import com.karumi.dexter.listener.single.PermissionListener;
 import com.king.app.dialog.AppDialog;
 import com.king.app.dialog.AppDialogConfig;
 import com.king.app.updater.AppUpdater;
+import com.robin.lazy.sms.SmsObserver;
+import com.robin.lazy.sms.SmsResponseCallback;
+import com.robin.lazy.sms.VerificationCodeSmsFilter;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.util.Date;
 import java.util.List;
-import java.util.Random;
 
-import z.p.data.DaoMaster;
 import z.p.data.OrderEntity;
 import z.p.data.OrderEntityDao;
 import z.p.data.PhoneInfoEntity;
-import z.p.event.MessageEvent;
 import z.p.event.NetworkEvent;
 import z.p.event.UpdateEvent;
 import z.p.util.AppUtil;
@@ -41,27 +44,21 @@ import static z.p.Const.SERVER;
 import static z.p.Const.充值订单状态_客户端停止接单;
 import static z.p.Const.充值订单状态_待支付;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements SmsResponseCallback {
 
-    public static Switch currentServiceSwitch;
-    private Switch notification_switch;
-    private Switch payService_switch;
-    private TextView tv_device_imei;
-    private TextView tip;
-    private TextView info;
-    private Button btn_imei;
+    Switch payService_switch;
+    TextView tv_device_imei;
+    Button btn_imei;
+    TextView tip;
 
-    private DaoMaster.DevOpenHelper helper;
-    private DaoMaster daoMaster;
-    private boolean enabledPrivileges;
+    SmsObserver smsObserver;
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onHandleMessageEvent(MessageEvent messageEvent) {
-        if (messageEvent.isHasImei()) {
+    public void updateImeiStatus(String imei) {
+        if (!TextUtils.isEmpty(imei)) {
             btn_imei.setVisibility(View.GONE);
             tv_device_imei.setEnabled(false);
-            tv_device_imei.setText(messageEvent.getMessage());
-            AppUtil.setImei(messageEvent.getMessage());
+            tv_device_imei.setText(imei);
+            AppUtil.setImei(imei);
         } else {
             Toast.makeText(this, "请设置IMEI", Toast.LENGTH_LONG).show();
         }
@@ -87,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
         AppDialogConfig config = new AppDialogConfig();
         config.setTitle("PayRecord升级")
                 .setOk("确认")
-                .setContent("1、上传系统日志")
+                .setContent("升级软件")
                 .setOnClickOk(v -> {
                     new AppUpdater.Builder()
                             .serUrl(SERVER + "update/app")
@@ -104,85 +101,60 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        helper = new DaoMaster.DevOpenHelper(this, Const.DB_NAME, null);
-        daoMaster = new DaoMaster(helper.getWritableDatabase());
-
-        notification_switch = findViewById(R.id.notification_switch);
-        notification_switch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked != enabledPrivileges) {
-                    openNotificationListenSettings();
-                }
-            }
-        });
-
         payService_switch = findViewById(R.id.pay_service_switch);
-        payService_switch.setChecked(false);
-        payService_switch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    checkStatus();
-                } else {
-                    new Thread(() -> {
-                        List<OrderEntity> orderEntityList = daoMaster.newSession().getOrderEntityDao().queryBuilder()
-                                .where(OrderEntityDao.Properties.Status.eq(充值订单状态_待支付))
-                                .build().list();
-                        for (OrderEntity orderEntity : orderEntityList) {
-                            orderEntity.setStatus(充值订单状态_客户端停止接单);
-                        }
-                    }).start();
-                }
+        payService_switch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (smsObserver == null) {
+                Toast.makeText(getApplicationContext(), "没有获取到短信读取权限，退出程序", Toast.LENGTH_SHORT).show();
+                finish();
+            }
+            if (isChecked) {
+                smsObserver.registerSMSObserver();
+                MyApplication.working = true;
+            } else {
+                smsObserver.unregisterSMSObserver();
+                MyApplication.working = false;
+                new Thread(() -> {
+                    List<OrderEntity> orderEntityList = MyApplication.getDaoSession().getOrderEntityDao().queryBuilder()
+                            .where(OrderEntityDao.Properties.Status.eq(充值订单状态_待支付))
+                            .build().list();
+                    for (OrderEntity orderEntity : orderEntityList) {
+                        orderEntity.setStatus(充值订单状态_客户端停止接单);
+                    }
+                }).start();
             }
         });
-        currentServiceSwitch = payService_switch;
-
+        payService_switch.setChecked(false);
 
         Button btn_log = findViewById(R.id.btn_log);
-        btn_log.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(MainActivity.this, LogActivity.class);
-                startActivity(intent);
-            }
+        btn_log.setOnClickListener(view -> {
+            Intent intent = new Intent(MainActivity.this, LogActivity.class);
+            startActivity(intent);
         });
 
         Button btn_update = findViewById(R.id.btn_update);
-        btn_update.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                new Thread(() -> Updater.checkUpdate(getApplicationContext())).start();
-            }
-        });
-
-        toggleNotificationListenerService();
-
-        checkStatus();
+        btn_update.setOnClickListener(view -> new Thread(() -> Updater.checkUpdate(getApplicationContext())).start());
 
         tv_device_imei = findViewById(R.id.tv_device_imei);
         btn_imei = findViewById(R.id.btn_imei);
         btn_imei.setOnClickListener(view -> {
             if (!TextUtils.isEmpty(tv_device_imei.getText())) {
-                PhoneInfoEntity phoneData = new PhoneInfoEntity();
-                phoneData.setK(Const.IMEI_KEY);
-                phoneData.setV(tv_device_imei.getText().toString());
-                daoMaster.newSession().getPhoneInfoEntityDao().insert(phoneData);
+                PhoneInfoEntity phoneInfoEntity = new PhoneInfoEntity();
+                phoneInfoEntity.setK(Const.IMEI_KEY);
+                phoneInfoEntity.setV(tv_device_imei.getText().toString());
+                MyApplication.getDaoSession().getPhoneInfoEntityDao().insert(phoneInfoEntity);
 
-                MessageEvent event = new MessageEvent();
-                event.setHasImei(true);
-                event.setMessage(tv_device_imei.getText().toString());
-                EventBus.getDefault().post(event);
+                updateImeiStatus(tv_device_imei.getText().toString());
             }
         });
+
         tip = findViewById(R.id.tip);
 
-        info = findViewById(R.id.info);
-        StringBuffer sb = new StringBuffer();
+        TextView info = findViewById(R.id.info);
+        StringBuilder sb = new StringBuilder();
         sb.append("VERSION:")
                 .append(AppUtil.getVersionName(this))
                 .append(System.lineSeparator())
-                .append(new Random().nextInt(1000))
+                .append(new Date().toString())
                 .append(Const.SERVER.replace(".", "-")
                         .replace("/", "-")
                         .replace(":", "-")
@@ -195,6 +167,7 @@ public class MainActivity extends AppCompatActivity {
 
         Intent startIntent = new Intent(this, AlarmService.class);
         startService(startIntent);
+
     }
 
     @Override
@@ -202,50 +175,49 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         Intent stopIntent = new Intent(this, AlarmService.class);
         stopService(stopIntent);
+
+        EventBus.getDefault().unregister(this);
+        if (smsObserver != null) {
+            smsObserver.unregisterSMSObserver();
+        }
+
+        MyApplication.working = false;
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        checkStatus();
-        EventBus.getDefault().register(this);
-
-        new Thread(() -> {
-
-            List<PhoneInfoEntity> phoneDataList = daoMaster.newSession().getPhoneInfoEntityDao().loadAll();
-            for (PhoneInfoEntity phoneData : phoneDataList) {
-                if (TextUtils.equals(Const.IMEI_KEY, phoneData.getK())) {
-                    MessageEvent event = new MessageEvent();
-                    event.setHasImei(!TextUtils.isEmpty(phoneData.getV()));
-                    event.setMessage(phoneData.getV());
-                    EventBus.getDefault().post(event);
-                }
+        List<PhoneInfoEntity> phoneInfoEntities = MyApplication.getDaoSession().getPhoneInfoEntityDao().loadAll();
+        for (PhoneInfoEntity phoneInfoEntity : phoneInfoEntities) {
+            if (TextUtils.equals(phoneInfoEntity.getK(), Const.IMEI_KEY)) {
+                updateImeiStatus(phoneInfoEntity.getV());
             }
-        }).start();
+        }
+
+        Dexter.withActivity(this)
+                .withPermission(Manifest.permission.READ_SMS)
+                .withListener(new PermissionListener() {
+                    @Override
+                    public void onPermissionGranted(PermissionGrantedResponse response) {
+                        smsObserver = new SmsObserver(MainActivity.this, MainActivity.this, new VerificationCodeSmsFilter("180"));
+                        smsObserver.registerSMSObserver();
+                        payService_switch.setChecked(true);
+                        MyApplication.working = true;
+                    }
+
+                    @Override
+                    public void onPermissionDenied(PermissionDeniedResponse response) {
+                        MyApplication.working = false;
+                        Toast.makeText(getApplicationContext(), "无法读取短信，退出程序", Toast.LENGTH_SHORT).show();
+                        finish();
+                    }
+
+                    @Override
+                    public void onPermissionRationaleShouldBeShown(PermissionRequest permission, PermissionToken token) {
+                    }
+                }).check();
     }
 
-    private void checkStatus() {
-        //权限开启.才能启动服务
-        boolean enabled = isEnabled();
-        enabledPrivileges = enabled;
-        notification_switch.setChecked(enabled);
-        if (!enabled) {
-            payService_switch.setEnabled(false);
-            return;
-        }
-        payService_switch.setEnabled(true);
-        //开启服务
-        ComponentName name = startService(new Intent(this, NotificationMonitorService.class));
-        if (name == null) {
-            payService_switch.setChecked(false);
-            Toast.makeText(getApplicationContext(), "服务开启失败", Toast.LENGTH_LONG).show();
-            return;
-        }
-        // 手动关闭服务之后 需要重新设置服务 所以在onCreate处调用
-        // toggleNotificationListenerService();
-        payService_switch.setChecked(true);
-
-    }
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
@@ -255,52 +227,9 @@ public class MainActivity extends AppCompatActivity {
         return super.onKeyDown(keyCode, event);
     }
 
-    //检查是否启用了监听通知的使用权
-    private boolean isEnabled() {
-        String str = getPackageName();
-        String localObject = Settings.Secure.getString(getContentResolver(), "enabled_notification_listeners");
-        if (!TextUtils.isEmpty(localObject)) {
-            String[] strArr = (localObject).split(":");
-            for (String name : strArr) {
-                ComponentName localComponentName = ComponentName.unflattenFromString(name);
-                if ((localComponentName != null) && (TextUtils.equals(str, localComponentName.getPackageName())))
-                    return true;
-            }
-        }
-        return false;
-    }
-
     @Override
-    protected void onPause() {
-        super.onPause();
-        EventBus.getDefault().unregister(this);
+    public void onCallbackSmsContent(String code) {
+//        textView.setText("短信验证码:"+code);
     }
-
-    private void toggleNotificationListenerService() {
-        PackageManager localPackageManager = getPackageManager();
-        localPackageManager.setComponentEnabledSetting(new ComponentName(this, NotificationMonitorService.class),
-                PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
-        localPackageManager.setComponentEnabledSetting(new ComponentName(this, NotificationMonitorService.class),
-                PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
-    }
-
-    /**
-     * 打开通知权限设置.一般手机根本找不到哪里设置
-     */
-    private void openNotificationListenSettings() {
-        try {
-            Intent intent;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
-                intent = new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS);
-            } else {
-                intent = new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS");
-            }
-            startActivity(intent);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-    }
-
 
 }

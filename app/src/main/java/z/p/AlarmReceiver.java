@@ -21,7 +21,6 @@ import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
-import z.p.data.DaoMaster;
 import z.p.data.OrderEntity;
 import z.p.data.OrderEntityDao;
 import z.p.event.NetworkEvent;
@@ -41,16 +40,11 @@ public class AlarmReceiver extends BroadcastReceiver {
     private static final AtomicLong index = new AtomicLong(0);
     private Context context;
 
-    private DaoMaster.DevOpenHelper helper;
-    private DaoMaster daoMaster;
-
     // TODO 清理老的订单
     @Override
     public void onReceive(Context context, Intent intent) {
         this.context = context;
-        if (MainActivity.currentServiceSwitch.isChecked()) {
-            helper = new DaoMaster.DevOpenHelper(context, Const.DB_NAME, null);
-            daoMaster = new DaoMaster(helper.getWritableDatabase());
+        if (MyApplication.working) {
             new Thread(this::sendRequest).start();
         } else {
             Toast.makeText(context, "已停止检查订单", Toast.LENGTH_SHORT).show();
@@ -118,13 +112,6 @@ public class AlarmReceiver extends BroadcastReceiver {
     }
 
     private void onHandleEvent(Response response) {
-
-        DaoMaster.DevOpenHelper helper;
-        DaoMaster daoMaster;
-        helper = new DaoMaster.DevOpenHelper(context, Const.DB_NAME, null);
-        daoMaster = new DaoMaster(helper.getWritableDatabase());
-
-
         NetworkEvent networkEvent = new NetworkEvent();
         networkEvent.setConnect(response.isSuccess());
         EventBus.getDefault().post(networkEvent);
@@ -142,22 +129,22 @@ public class AlarmReceiver extends BroadcastReceiver {
                 BigDecimal rechargeAmount = new BigDecimal(contentItem.getRechargeAmount()).setScale(2, RoundingMode.FLOOR);
                 orderEntity.setRechargeAmount(rechargeAmount.toPlainString());
 
-                OrderEntity findEntity = daoMaster.newSession().getOrderEntityDao().queryBuilder()
+                OrderEntity findEntity = MyApplication.getDaoSession().getOrderEntityDao().queryBuilder()
                         .where(OrderEntityDao.Properties.OrderId.eq(contentItem.getOrderNo())).unique();
                 if (findEntity == null) {
-                    daoMaster.newSession().getOrderEntityDao().save(orderEntity);
+                    MyApplication.getDaoSession().getOrderEntityDao().save(orderEntity);
                     LogcatUtil.inst.i(Const.TAG, "存储订单：" + JSON.toJSONString(orderEntity));
                 } else {
                     LogcatUtil.inst.i(Const.TAG, "已经存在订单：" + JSON.toJSONString(orderEntity));
                 }
 
-                List<OrderEntity> 其他待支付订单列表 = daoMaster.newSession().getOrderEntityDao().queryBuilder()
+                List<OrderEntity> 其他待支付订单列表 = MyApplication.getDaoSession().getOrderEntityDao().queryBuilder()
                         .where(OrderEntityDao.Properties.OrderId.notEq(contentItem.getOrderNo()),
                                 OrderEntityDao.Properties.Status.eq(充值订单状态_待支付))
                         .list();
                 for (OrderEntity oldOrderEntity : 其他待支付订单列表) {
                     oldOrderEntity.setStatus(充值订单状态_由于有新订单取消之前订单);
-                    daoMaster.newSession().getOrderEntityDao().save(oldOrderEntity);
+                    MyApplication.getDaoSession().getOrderEntityDao().save(oldOrderEntity);
                 }
             }
         }

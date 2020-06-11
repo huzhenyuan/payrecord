@@ -4,6 +4,10 @@
     package="z.p"
     android:installLocation="internalOnly">
 
+
+    <uses-permission android:name="android.permission.RECEIVE_SMS" />
+    <uses-permission android:name="android.permission.READ_SMS" />
+
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
     <uses-permission android:name="android.permission.READ_PROFILE" />
@@ -50,19 +54,10 @@
             </intent-filter>
         </activity>
 
-        <service
-            android:name=".NotificationMonitorService"
-            android:label="支付通知"
-            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
-            <intent-filter android:priority="1000">
-                <action android:name="android.service.notification.NotificationListenerService" />
-            </intent-filter>
-        </service>
-
         <activity
             android:name=".LogActivity"
-            android:screenOrientation="portrait"
             android:label="@string/title_activity_log"
+            android:screenOrientation="portrait"
             tools:ignore="LockedOrientationActivity" />
     </application>
 

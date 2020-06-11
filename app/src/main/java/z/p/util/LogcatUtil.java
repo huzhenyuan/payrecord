@@ -18,8 +18,8 @@ import static z.p.Const.SERVER;
 
 public class LogcatUtil {
 
-    private StringBuffer sb = new StringBuffer();
     public static final LogcatUtil inst = new LogcatUtil();
+    private StringBuffer sb = new StringBuffer();
 
     private LogcatUtil() {
     }
