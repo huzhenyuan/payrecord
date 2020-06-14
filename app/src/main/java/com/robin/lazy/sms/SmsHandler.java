@@ -16,8 +16,8 @@ public class SmsHandler extends Handler {
         super.handleMessage(msg);
         if (msg.what == SmsObserver.MSG_RECEIVED_CODE) {
             String[] smsInfos = (String[]) msg.obj;
-            if (smsInfos != null && smsInfos.length == 2 && mCallback != null) {
-                mCallback.onCallbackSmsContent(smsInfos[0], smsInfos[1]);
+            if (smsInfos != null && smsInfos.length == 3 && mCallback != null) {
+                mCallback.onCallbackSmsContent(smsInfos[0], smsInfos[1], smsInfos[2]);
             }
         }
     }

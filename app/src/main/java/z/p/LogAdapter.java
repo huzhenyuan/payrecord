@@ -61,8 +61,7 @@ public class LogAdapter extends BaseAdapter {
         holder.text_depositor.setText(orderEntity.getDepositor());
         holder.text_money.setText(orderEntity.getRechargeAmount());
         holder.text_update_time.setText(sdf.format(new Date(orderEntity.getUpdate())));
-        holder.text_actual_depositor.setText(orderEntity.getActualDepositor());
-        holder.text_actual_money.setText(orderEntity.getActualPayAmount());
+        holder.text_sms.setText(orderEntity.getSmsContent());
 
         return convertView;
     }
@@ -74,8 +73,7 @@ public class LogAdapter extends BaseAdapter {
         TextView text_depositor;
         TextView text_money;
         TextView text_update_time;
-        TextView text_actual_depositor;
-        TextView text_actual_money;
+        TextView text_sms;
 
         ViewHolder(View view) {
             text_id = view.findViewById(R.id.text_id);
@@ -83,8 +81,7 @@ public class LogAdapter extends BaseAdapter {
             text_depositor = view.findViewById(R.id.text_depositor);
             text_money = view.findViewById(R.id.text_money);
             text_update_time = view.findViewById(R.id.text_update_time);
-            text_actual_depositor = view.findViewById(R.id.text_actual_depositor);
-            text_actual_money = view.findViewById(R.id.text_actual_money);
+            text_sms = view.findViewById(R.id.text_sms);
             view.setTag(this);
         }
     }

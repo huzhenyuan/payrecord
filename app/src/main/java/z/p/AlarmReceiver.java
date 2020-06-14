@@ -3,6 +3,7 @@ package z.p;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.text.TextUtils;
 import android.widget.Toast;
 
@@ -31,6 +32,7 @@ import z.p.util.CryptoUtil;
 import z.p.util.LogcatUtil;
 
 import static z.p.Const.SERVER;
+import static z.p.Const.充值订单状态_客户端停止接单;
 import static z.p.Const.充值订单状态_待支付;
 import static z.p.Const.充值订单状态_由于有新订单取消之前订单;
 
@@ -40,7 +42,6 @@ public class AlarmReceiver extends BroadcastReceiver {
     private static final AtomicLong index = new AtomicLong(0);
     private Context context;
 
-    // TODO 清理老的订单
     @Override
     public void onReceive(Context context, Intent intent) {
         this.context = context;
@@ -51,7 +52,11 @@ public class AlarmReceiver extends BroadcastReceiver {
         }
 
         Intent startIntent = new Intent(context, AlarmService.class);
-        context.startService(startIntent);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(startIntent);
+        } else {
+            context.startService(startIntent);
+        }
 
         if (index.getAndIncrement() % 3 == 0) {
             new Thread(() -> LogcatUtil.inst.upload(AppUtil.getImei(), AppUtil.getVersionName(context))).start();
@@ -114,28 +119,32 @@ public class AlarmReceiver extends BroadcastReceiver {
     private void onHandleEvent(Response response) {
         NetworkEvent networkEvent = new NetworkEvent();
         networkEvent.setConnect(response.isSuccess());
-        EventBus.getDefault().post(networkEvent);
 
 
         if (response.isSuccess()) {
             List<ContentItem> contentList = response.getData().getContent();
 
             for (ContentItem contentItem : contentList) {
-                OrderEntity orderEntity = new OrderEntity();
-                orderEntity.setOrderId(contentItem.getOrderNo());
-                orderEntity.setCreate(System.currentTimeMillis());
-                orderEntity.setDepositor(contentItem.getDepositor());
-                orderEntity.setStatus(充值订单状态_待支付);
-                BigDecimal rechargeAmount = new BigDecimal(contentItem.getRechargeAmount()).setScale(2, RoundingMode.FLOOR);
-                orderEntity.setRechargeAmount(rechargeAmount.toPlainString());
+                networkEvent.setWorking(true);
 
                 OrderEntity findEntity = MyApplication.getDaoSession().getOrderEntityDao().queryBuilder()
                         .where(OrderEntityDao.Properties.OrderId.eq(contentItem.getOrderNo())).unique();
                 if (findEntity == null) {
+                    OrderEntity orderEntity = new OrderEntity();
+                    orderEntity.setOrderId(contentItem.getOrderNo());
+                    orderEntity.setCreate(System.currentTimeMillis());
+                    orderEntity.setDepositor(contentItem.getDepositor());
+                    orderEntity.setStatus(充值订单状态_待支付);
+                    BigDecimal rechargeAmount = new BigDecimal(contentItem.getRechargeAmount()).setScale(2, RoundingMode.FLOOR);
+                    orderEntity.setRechargeAmount(rechargeAmount.toPlainString());
                     MyApplication.getDaoSession().getOrderEntityDao().save(orderEntity);
                     LogcatUtil.inst.i(Const.TAG, "存储订单：" + JSON.toJSONString(orderEntity));
                 } else {
-                    LogcatUtil.inst.i(Const.TAG, "已经存在订单：" + JSON.toJSONString(orderEntity));
+                    if (TextUtils.equals(充值订单状态_客户端停止接单, findEntity.getStatus())) {
+                        findEntity.setStatus(充值订单状态_待支付);
+                        MyApplication.getDaoSession().getOrderEntityDao().save(findEntity);
+                        LogcatUtil.inst.i(Const.TAG, "已经存在订单：" + JSON.toJSONString(findEntity));
+                    }
                 }
 
                 List<OrderEntity> 其他待支付订单列表 = MyApplication.getDaoSession().getOrderEntityDao().queryBuilder()
@@ -148,6 +157,8 @@ public class AlarmReceiver extends BroadcastReceiver {
                 }
             }
         }
+
+        EventBus.getDefault().post(networkEvent);
     }
 
 

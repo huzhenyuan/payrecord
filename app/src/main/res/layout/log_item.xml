@@ -1,29 +1,22 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:showDividers="middle">
+
+
+    <TextView
+        android:id="@+id/text_id"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="id" />
+
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:weightSum="5">
-
-        <TextView
-            android:id="@+id/text_id"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="id"
-            android:textAlignment="center" />
-
-        <TextView
-            android:id="@+id/text_time"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="2"
-            android:text="create_time"
-            android:textAlignment="center" />
+        android:weightSum="6">
 
 
         <TextView
@@ -31,7 +24,6 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:padding="2dp"
             android:text="depositor" />
 
         <TextView
@@ -41,18 +33,13 @@
             android:layout_weight="1"
             android:padding="2dp"
             android:text="money" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:weightSum="5">
 
         <TextView
+            android:id="@+id/text_time"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_weight="2"
+            android:text="create_time"
             android:textAlignment="center" />
 
         <TextView
@@ -62,22 +49,13 @@
             android:layout_weight="2"
             android:text="update_time"
             android:textAlignment="center" />
-
-
-        <TextView
-            android:id="@+id/text_actual_depositor"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:padding="2dp"
-            android:text="actual_depositor" />
-
-        <TextView
-            android:id="@+id/text_actual_money"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:padding="2dp"
-            android:text="actual_money" />
     </LinearLayout>
+
+
+    <TextView
+        android:id="@+id/text_sms"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="sms" />
+
 </LinearLayout>

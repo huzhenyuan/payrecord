@@ -2,6 +2,7 @@ package z.p.event;
 
 public class NetworkEvent {
     private boolean isConnect;
+    private boolean isWorking;
     private String message;
 
 
@@ -19,5 +20,13 @@ public class NetworkEvent {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public boolean isWorking() {
+        return isWorking;
+    }
+
+    public void setWorking(boolean working) {
+        isWorking = working;
     }
 }

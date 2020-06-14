@@ -1,6 +1,7 @@
 package com.robin.lazy.sms;
 
 import android.app.Activity;
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.ContentObserver;
 import android.database.Cursor;
@@ -56,13 +57,19 @@ public class SmsObserver extends ContentObserver {
                     null, "date desc");
             if (c != null) {
                 if (c.moveToFirst()) {
+                    String id = c.getString(c.getColumnIndex("_id"));
                     String address = c.getString(c.getColumnIndex("address"));
                     String body = c.getString(c.getColumnIndex("body"));
                     if (mHandler != null) {
-                        mHandler.obtainMessage(MSG_RECEIVED_CODE, new String[]{address, body})
+                        mHandler.obtainMessage(MSG_RECEIVED_CODE, new String[]{id, address, body})
                                 .sendToTarget();
                     }
-                    LogcatUtil.inst.i(Const.TAG, "发件人为：" + address + " " + "短信内容为：" + body);
+                    LogcatUtil.inst.i(Const.TAG, "收到短息发件人为：" + address + " " + "短信内容为：" + body);
+
+//                    ContentValues values = new ContentValues();
+//                    values.put("read", "1");
+//                    mContext.getContentResolver().update(Uri.parse("content://sms/"), values, "_id=?", new String[]{id});
+//                    LogcatUtil.inst.i(Const.TAG, "标记短信已读：" + id);
                 }
                 c.close();
             }

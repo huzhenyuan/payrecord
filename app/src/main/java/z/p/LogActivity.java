@@ -21,7 +21,7 @@ public class LogActivity extends AppCompatActivity {
         container = findViewById(R.id.log_container);
 
         Button btn_clear_log = findViewById(R.id.btn_clear_log);
-        btn_clear_log.setEnabled(false);
+        btn_clear_log.setEnabled(true);
         btn_clear_log.setOnClickListener(view -> {
             new Thread(() -> {
                 MyApplication.getDaoSession().getOrderEntityDao().deleteAll();

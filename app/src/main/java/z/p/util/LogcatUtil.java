@@ -12,7 +12,7 @@ import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
-import z.p.model.Response;
+import okhttp3.Response;
 
 import static z.p.Const.SERVER;
 
@@ -70,8 +70,6 @@ public class LogcatUtil {
         try {
             response = client.newCall(request).execute();
             String responseString = response.body().string();
-            Response resp = JSON.parseObject(responseString, Response.class);
-
             response.body().close();
             response.close();
         } catch (Exception e) {
