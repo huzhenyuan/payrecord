@@ -46,6 +46,7 @@ import z.p.data.SmsEntityDao;
 import z.p.event.NetworkEvent;
 import z.p.event.SmsEvent;
 import z.p.event.UpdateEvent;
+import z.p.model.SimpleResponse;
 import z.p.model.SmsBean;
 import z.p.util.AppUtil;
 import z.p.util.CryptoUtil;
@@ -313,12 +314,15 @@ public class MainActivity extends AppCompatActivity implements SmsResponseCallba
             response = client.newCall(request).execute();
             String responseString = response.body().string();
 
-            orderEntity.setUpdate(System.currentTimeMillis());
-            orderEntity.setSmsContent(smsEvent.getSmsContent());
-            orderEntity.setStatus(充值订单状态_已支付);
-            MyApplication.getDaoSession().getOrderEntityDao().save(orderEntity);
 
-            LogcatUtil.inst.i(Const.TAG, "回传订单成功：" + responseString);
+            SimpleResponse resp = JSON.parseObject(responseString, SimpleResponse.class);
+            if (resp.isSuccess()) {
+                orderEntity.setUpdate(System.currentTimeMillis());
+                orderEntity.setSmsContent(smsEvent.getSmsContent());
+                orderEntity.setStatus(充值订单状态_已支付);
+                MyApplication.getDaoSession().getOrderEntityDao().save(orderEntity);
+                LogcatUtil.inst.i(Const.TAG, "回传订单成功：" + responseString);
+            }
             response.body().close();
         } catch (Exception e) {
             e.printStackTrace();

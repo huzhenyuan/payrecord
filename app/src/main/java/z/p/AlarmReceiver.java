@@ -99,7 +99,6 @@ public class AlarmReceiver extends BroadcastReceiver {
         try {
             response = client.newCall(request).execute();
             String responseString = response.body().string();
-            LogcatUtil.inst.i(Const.TAG, "提交查询分配给当前设备的订单结果：" + responseString);
             Response resp = JSON.parseObject(responseString, Response.class);
 
             response.body().close();
