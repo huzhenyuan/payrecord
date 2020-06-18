@@ -1,8 +1,8 @@
 <component name="libraryTable">
   <library name="Gradle: com.king.app:app-updater:1.0@aar">
     <CLASSES>
-      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/cf9dc06cd7f5fe044a62dcb2a6339a6b/jars/classes.jar!/" />
-      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/cf9dc06cd7f5fe044a62dcb2a6339a6b/res" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/4b83f015ae219092f838471b084f689a/jars/classes.jar!/" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/4b83f015ae219092f838471b084f689a/res" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

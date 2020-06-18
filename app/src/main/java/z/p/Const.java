@@ -6,11 +6,7 @@ import java.util.Map;
 public class Const {
 
     public static final String TAG = "HZY";
-    public static final String SERVER = "http://192.168.43.148:8083/";
-    //    public static final String SERVER = "http://117.51.137.126:8083/";
-    //    public static final String SERVER = "http://117.51.147.243:8083/";
-    public static final String CHANNEL_ID = "ID";
-    public static final String IntentAction = "xyz.loadnl.Notification";
+    public static final String SERVER = "http://117.51.156.157:8083/";
     public static final String PRIVATE_KEY = "951d6770449ab6d1ca3f6b71d2f00e55ab1af0bb8b967aaab34642cbde6704c7";
     public static final String DB_NAME = "pay";
     public static final String MEMBER_ID = "1254448435801620480";

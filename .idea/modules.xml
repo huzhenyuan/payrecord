@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/AndroidStudioProjects-payrecord.iml" filepath="$PROJECT_DIR$/AndroidStudioProjects-payrecord.iml" group="payrecord" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" group="payrecord/app" />
       <module fileurl="file://$PROJECT_DIR$/payrecord.iml" filepath="$PROJECT_DIR$/payrecord.iml" group="payrecord" />
     </modules>

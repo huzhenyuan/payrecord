@@ -7,19 +7,53 @@ android {
         applicationId "z.p"
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 106
-        versionName "1.0.6"
+        versionCode 107
+        versionName "1.0.7"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        archivesBaseName = "PayRecord-$versionName"
+    }
+    signingConfigs {
+        debug {
+            keyAlias 'pay'
+            keyPassword '123456'
+            storeFile file('../keystore/pay.jks')
+            storePassword '123456'
+        }
+        release {
+            keyAlias 'pay'
+            keyPassword '123456'
+            storeFile file('../keystore/pay.jks')
+            storePassword '123456'
+        }
     }
     buildTypes {
+        debug {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.debug
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
     }
     compileOptions {
         sourceCompatibility = 1.8
         targetCompatibility = 1.8
+    }
+    applicationVariants.all { variant ->
+        variant.outputs.all {
+            def appName = "PayRecord"
+            def buildType = variant.variantData.variantConfiguration.buildType.name
+            def newName
+            if (buildType == 'debug'){
+                newName = "${appName}${defaultConfig.versionName}_debug.apk"
+            } else {
+                newName = "${appName}${defaultConfig.versionName}_release.apk"
+            }
+            outputFileName = newName
+        }
     }
 }
 
