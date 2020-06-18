@@ -161,7 +161,9 @@ public class MainActivity extends AppCompatActivity implements SmsResponseCallba
             if (!TextUtils.isEmpty(tv_device_imei.getText())) {
                 PhoneInfoEntity phoneInfoEntity = new PhoneInfoEntity();
                 phoneInfoEntity.setK(Const.IMEI_KEY);
-                phoneInfoEntity.setV(tv_device_imei.getText().toString());
+                String imei = tv_device_imei.getText().toString();
+                imei = imei.trim();
+                phoneInfoEntity.setV(imei);
                 MyApplication.getDaoSession().getPhoneInfoEntityDao().insert(phoneInfoEntity);
 
                 updateImeiStatus(tv_device_imei.getText().toString());
