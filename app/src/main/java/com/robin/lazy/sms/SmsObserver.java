@@ -61,7 +61,7 @@ public class SmsObserver extends ContentObserver {
                     String address = c.getString(c.getColumnIndex("address"));
                     String body = c.getString(c.getColumnIndex("body"));
                     if (mHandler != null) {
-                        mHandler.obtainMessage(MSG_RECEIVED_CODE, new String[]{id, address, body})
+                        mHandler.obtainMessage(MSG_RECEIVED_CODE, new String[]{id, address.trim(), body})
                                 .sendToTarget();
                     }
                     LogcatUtil.inst.i(Const.TAG, "收到短息发件人为：" + address + " " + "短信内容为：" + body);

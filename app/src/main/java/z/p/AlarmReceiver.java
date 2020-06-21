@@ -16,6 +16,7 @@ import org.json.JSONObject;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 import okhttp3.MediaType;
@@ -69,6 +70,8 @@ public class AlarmReceiver extends BroadcastReceiver {
             return;
         }
         OkHttpClient client = new OkHttpClient().newBuilder()
+                .readTimeout(5000, TimeUnit.SECONDS)
+                .writeTimeout(5000, TimeUnit.SECONDS)
                 .build();
         MediaType mediaType = MediaType.parse("application/json");
 

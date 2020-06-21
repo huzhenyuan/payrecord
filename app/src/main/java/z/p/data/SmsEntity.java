@@ -6,19 +6,22 @@ import org.greenrobot.greendao.annotation.Generated;
 import org.greenrobot.greendao.annotation.Id;
 import org.greenrobot.greendao.annotation.Index;
 
-@Entity(indexes = {@Index(value = "smsId", unique = true)})
+@Entity(indexes = {@Index(value = "smsId", unique = true), @Index(value = "processFlag", unique = true)})
 public class SmsEntity {
     @Id(autoincrement = true)
     private Long id;
     private String smsId;
     private String phoneNumber;
     private String smsContent;
-    @Generated(hash = 1458557575)
-    public SmsEntity(Long id, String smsId, String phoneNumber, String smsContent) {
+    private int processFlag;
+    @Generated(hash = 2022087445)
+    public SmsEntity(Long id, String smsId, String phoneNumber, String smsContent,
+            int processFlag) {
         this.id = id;
         this.smsId = smsId;
         this.phoneNumber = phoneNumber;
         this.smsContent = smsContent;
+        this.processFlag = processFlag;
     }
     @Generated(hash = 1127714058)
     public SmsEntity() {
@@ -46,5 +49,11 @@ public class SmsEntity {
     }
     public void setSmsContent(String smsContent) {
         this.smsContent = smsContent;
+    }
+    public int getProcessFlag() {
+        return this.processFlag;
+    }
+    public void setProcessFlag(int processFlag) {
+        this.processFlag = processFlag;
     }
 }

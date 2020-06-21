@@ -34,6 +34,11 @@ import org.json.JSONObject;
 
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -46,7 +51,6 @@ import z.p.data.PhoneInfoEntity;
 import z.p.data.SmsEntity;
 import z.p.data.SmsEntityDao;
 import z.p.event.NetworkEvent;
-import z.p.event.SmsEvent;
 import z.p.event.UpdateEvent;
 import z.p.model.SimpleResponse;
 import z.p.model.SmsBean;
@@ -67,6 +71,8 @@ public class MainActivity extends AppCompatActivity implements SmsResponseCallba
     TextView tip;
 
     SmsObserver smsObserver;
+
+    ScheduledExecutorService smsService = Executors.newScheduledThreadPool(1);
 
     public void updateImeiStatus(String imei) {
         if (!TextUtils.isEmpty(imei)) {
@@ -242,6 +248,16 @@ public class MainActivity extends AppCompatActivity implements SmsResponseCallba
 
         new Thread(this::stopAllOrder).start();
 
+        smsService.scheduleWithFixedDelay(new Runnable() {
+            @Override
+            public void run() {
+                List<SmsEntity> smsList = MyApplication.getDaoSession().getSmsEntityDao().queryBuilder().where(
+                        SmsEntityDao.Properties.ProcessFlag.eq(Const.短信_未处理)).build().list();
+                for (SmsEntity smsEntity : smsList) {
+                    EventBus.getDefault().post(smsEntity);
+                }
+            }
+        }, 5, 2, TimeUnit.SECONDS);
 
         Intent startIntent = new Intent(this, AlarmService.class);
         startService(startIntent);
@@ -307,10 +323,14 @@ public class MainActivity extends AppCompatActivity implements SmsResponseCallba
     }
 
     public synchronized void onCallbackSmsContent(final String smsId, final String phoneNumber, final String smsContent) {
+        //短信如果已经存储再本地，就忽略
         SmsEntity findSmsEntity = MyApplication.getDaoSession().getSmsEntityDao().queryBuilder().where(
                 SmsEntityDao.Properties.SmsId.eq(smsId)
         ).unique();
         if (findSmsEntity != null) {
+            return;
+        }
+        if (!Const.BANK_PHONE.containsKey(phoneNumber)) {
             return;
         }
         SmsEntity smsEntity = new SmsEntity();
@@ -318,20 +338,13 @@ public class MainActivity extends AppCompatActivity implements SmsResponseCallba
         smsEntity.setPhoneNumber(phoneNumber);
         smsEntity.setSmsContent(smsContent);
         MyApplication.getDaoSession().getSmsEntityDao().save(smsEntity);
-
-        SmsEvent smsEvent = new SmsEvent();
-        smsEvent.setPhoneNumber(phoneNumber);
-        smsEvent.setSmsContent(smsContent);
-        EventBus.getDefault().post(smsEvent);
     }
 
 
     @Subscribe(threadMode = ThreadMode.ASYNC)
-    public void onHandleSmsEvent(final SmsEvent smsEvent) {
-        LogcatUtil.inst.d(Const.TAG, "准备回传 " + smsEvent);
-        if (!Const.BANK_PHONE.containsKey(smsEvent.getPhoneNumber())) {
-            return;
-        }
+    public void onHandleSmsEvent(final SmsEntity smsEntity) {
+        LogcatUtil.inst.d(Const.TAG, "准备回传 " + smsEntity);
+
         //收到支付成功的系统通知后，找到本地记录的未完成的充值订单，把订单的状态修改了
         OrderEntity orderEntity = MyApplication.getDaoSession().getOrderEntityDao().queryBuilder()
                 .where(OrderEntityDao.Properties.Status.eq(充值订单状态_待支付))
@@ -339,10 +352,14 @@ public class MainActivity extends AppCompatActivity implements SmsResponseCallba
 
         if (orderEntity == null) {
             LogcatUtil.inst.d(Const.TAG, "本地找不到待回传的订单记录");
+            smsEntity.setProcessFlag(Const.短信_已处理);
+            MyApplication.getDaoSession().getSmsEntityDao().save(smsEntity);
             return;
         }
 
         OkHttpClient client = new OkHttpClient().newBuilder()
+                .readTimeout(5000, TimeUnit.SECONDS)
+                .writeTimeout(5000, TimeUnit.SECONDS)
                 .build();
         MediaType mediaType = MediaType.parse("application/json");
 
@@ -350,8 +367,8 @@ public class MainActivity extends AppCompatActivity implements SmsResponseCallba
         smsBeanPo.setCurrentAccountId(Const.MEMBER_ID);
         smsBeanPo.setDeviceImei(AppUtil.getImei());
         smsBeanPo.setOrderId(orderEntity.getOrderId());
-        smsBeanPo.setSmsContent(smsEvent.getSmsContent());
-        smsBeanPo.setPhoneNumber(smsEvent.getPhoneNumber());
+        smsBeanPo.setSmsContent(smsEntity.getSmsContent());
+        smsBeanPo.setPhoneNumber(smsEntity.getPhoneNumber());
 
         String poContent = JSON.toJSONString(smsBeanPo);
         String signature = CryptoUtil.sign(Const.PRIVATE_KEY, poContent);
@@ -373,10 +390,13 @@ public class MainActivity extends AppCompatActivity implements SmsResponseCallba
             SimpleResponse resp = JSON.parseObject(responseString, SimpleResponse.class);
             if (resp.isSuccess()) {
                 orderEntity.setUpdate(System.currentTimeMillis());
-                orderEntity.setSmsContent(smsEvent.getSmsContent());
+                orderEntity.setSmsContent(smsEntity.getSmsContent());
                 orderEntity.setStatus(充值订单状态_已支付);
                 MyApplication.getDaoSession().getOrderEntityDao().save(orderEntity);
                 LogcatUtil.inst.i(Const.TAG, "回传订单成功：" + responseString);
+
+                smsEntity.setProcessFlag(Const.短信_已处理);
+                MyApplication.getDaoSession().getSmsEntityDao().save(smsEntity);
             }
             response.body().close();
         } catch (Exception e) {
