@@ -15,7 +15,6 @@ public class Const {
     public static final int 短信_未处理 = 0;
     public static final int 短信_已处理 = 1;
 
-
     public static final String 充值订单状态_待支付 = "1";
     public static final String 充值订单状态_已支付 = "2";
     public static final String 充值订单状态_客户端停止接单 = "3";
@@ -23,7 +22,6 @@ public class Const {
     private static final String PUBLIC_KEY = "eb55937652a6803176da3734f92b1ad5a1e236fccb13776b712e081d9ccc51f7";
 
     public final static Map<String, String> BANK_PHONE = new HashMap<String, String>() {{
-        put("+8613716431209", "招商银行");
         put("95555", "招商银行");
         put("95566", "中国银行");
         put("95533", "建设银行");
