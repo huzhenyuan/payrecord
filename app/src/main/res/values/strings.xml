@@ -14,7 +14,7 @@
     <string name="app_id">appid</string>
     <string name="app_token">token</string>
     <string name="title_activity_log">日志记录</string>
-    <string name="tips">保持这个应用在前台运行，支付宝在后台运行: \n-打开服务权限，打开开始接单 \n-打开支付宝的收款通知,(我的-设置-通用-新消息通知-收钱到账语音提醒) \n-设置APP权限自启动 \n-允许后台运行 \n-黑屏不断网 \n-省电模式下白名单等 \n总之,让APP能一直联网,不被系统杀死</string>
+    <string name="tips">保持这个应用在前台运行: \n-打开服务权限，打开开始接单 \n-设置APP权限自启动 \n-允许后台运行 \n-黑屏不断网 \n-省电模式下白名单等 \n总之,让APP能一直联网,不被系统杀死</string>
     <string name="device_id">\"IMEI: \"</string>
     >
 </resources>

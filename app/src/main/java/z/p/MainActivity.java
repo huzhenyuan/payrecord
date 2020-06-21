@@ -29,6 +29,8 @@ import com.robin.lazy.sms.SmsResponseCallback;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.Date;
 import java.util.List;
@@ -121,6 +123,57 @@ public class MainActivity extends AppCompatActivity implements SmsResponseCallba
             orderEntity.setStatus(充值订单状态_客户端停止接单);
             MyApplication.getDaoSession().getOrderEntityDao().save(orderEntity);
         }
+        new Thread(this::sendStopOrder).start();
+        sendStopOrder();
+    }
+
+    //通知服务器，停止接单
+    void sendStopOrder() {
+        if (TextUtils.isEmpty(AppUtil.getImei())) {
+            return;
+        }
+        OkHttpClient client = new OkHttpClient().newBuilder()
+                .build();
+        MediaType mediaType = MediaType.parse("application/json");
+
+        JSONObject orderQueryJson = new JSONObject();
+        try {
+            orderQueryJson.put("currentAccountId", Const.MEMBER_ID);
+            orderQueryJson.put(Const.IMEI_KEY, AppUtil.getImei());
+
+            String content = orderQueryJson.toString();
+            String signature = CryptoUtil.sign(Const.PRIVATE_KEY, content);
+
+            orderQueryJson.put("signature", signature);
+        } catch (JSONException e) {
+
+            NetworkEvent networkEvent = new NetworkEvent();
+            networkEvent.setConnect(false);
+            EventBus.getDefault().post(networkEvent);
+
+            e.printStackTrace();
+        }
+
+        RequestBody body = RequestBody.create(mediaType, orderQueryJson.toString());
+        Request request = new Request.Builder()
+                .url(SERVER + "recharge/stopMemberImeiRechargeOrder")
+                .method("POST", body)
+                .addHeader("Content-Type", "application/json")
+                .build();
+        okhttp3.Response response = null;
+        try {
+            response = client.newCall(request).execute();
+            String responseString = response.body().string();
+            z.p.model.Response resp = JSON.parseObject(responseString, z.p.model.Response.class);
+
+            response.body().close();
+            response.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        NetworkEvent networkEvent = new NetworkEvent();
+        networkEvent.setConnect(false);
+        EventBus.getDefault().post(networkEvent);
     }
 
 

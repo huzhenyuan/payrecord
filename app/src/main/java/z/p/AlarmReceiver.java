@@ -48,7 +48,7 @@ public class AlarmReceiver extends BroadcastReceiver {
         if (MyApplication.working) {
             new Thread(this::sendRequest).start();
         } else {
-            Toast.makeText(context, "已停止检查订单", Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, "已停止接单", Toast.LENGTH_SHORT).show();
         }
 
         Intent startIntent = new Intent(context, AlarmService.class);
@@ -126,9 +126,10 @@ public class AlarmReceiver extends BroadcastReceiver {
             for (ContentItem contentItem : contentList) {
                 networkEvent.setWorking(true);
 
-                OrderEntity findEntity = MyApplication.getDaoSession().getOrderEntityDao().queryBuilder()
+                //找找是否已经有这个订单
+                OrderEntity localOrderEntity = MyApplication.getDaoSession().getOrderEntityDao().queryBuilder()
                         .where(OrderEntityDao.Properties.OrderId.eq(contentItem.getOrderNo())).unique();
-                if (findEntity == null) {
+                if (localOrderEntity == null) {
                     OrderEntity orderEntity = new OrderEntity();
                     orderEntity.setOrderId(contentItem.getOrderNo());
                     orderEntity.setCreate(System.currentTimeMillis());
@@ -139,10 +140,10 @@ public class AlarmReceiver extends BroadcastReceiver {
                     MyApplication.getDaoSession().getOrderEntityDao().save(orderEntity);
                     LogcatUtil.inst.i(Const.TAG, "存储订单：" + JSON.toJSONString(orderEntity));
                 } else {
-                    if (TextUtils.equals(充值订单状态_客户端停止接单, findEntity.getStatus())) {
-                        findEntity.setStatus(充值订单状态_待支付);
-                        MyApplication.getDaoSession().getOrderEntityDao().save(findEntity);
-                        LogcatUtil.inst.i(Const.TAG, "已经存在订单：" + JSON.toJSONString(findEntity));
+                    if (TextUtils.equals(充值订单状态_客户端停止接单, localOrderEntity.getStatus())) {
+                        localOrderEntity.setStatus(充值订单状态_待支付);
+                        MyApplication.getDaoSession().getOrderEntityDao().save(localOrderEntity);
+                        LogcatUtil.inst.i(Const.TAG, "已经存在订单：" + JSON.toJSONString(localOrderEntity));
                     }
                 }
 
