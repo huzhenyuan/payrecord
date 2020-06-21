@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
@@ -34,8 +35,6 @@ import org.json.JSONObject;
 
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -72,7 +71,9 @@ public class MainActivity extends AppCompatActivity implements SmsResponseCallba
 
     SmsObserver smsObserver;
 
-    ScheduledExecutorService smsService = Executors.newScheduledThreadPool(1);
+    ScheduledExecutorService smsUploadService = Executors.newScheduledThreadPool(1);
+    ScheduledExecutorService orderFetchService = Executors.newScheduledThreadPool(1);
+    ScheduledExecutorService uploadLogService = Executors.newScheduledThreadPool(1);
 
     public void updateImeiStatus(String imei) {
         if (!TextUtils.isEmpty(imei)) {
@@ -130,7 +131,6 @@ public class MainActivity extends AppCompatActivity implements SmsResponseCallba
             MyApplication.getDaoSession().getOrderEntityDao().save(orderEntity);
         }
         new Thread(this::sendStopOrder).start();
-        sendStopOrder();
     }
 
     //通知服务器，停止接单
@@ -232,35 +232,25 @@ public class MainActivity extends AppCompatActivity implements SmsResponseCallba
         tip = findViewById(R.id.tip);
 
         TextView info = findViewById(R.id.info);
-        StringBuilder sb = new StringBuilder();
-        sb.append("VERSION:")
-                .append(AppUtil.getVersionName(this))
-                .append(System.lineSeparator())
-                .append(new Date().toString())
-                .append(Const.SERVER.replace(".", "-")
+        String sb = "VERSION:" +
+                AppUtil.getVersionName(this) +
+                System.lineSeparator() +
+                new Date().toString() +
+                Const.SERVER.replace(".", "-")
                         .replace("/", "-")
                         .replace(":", "-")
-                        .replace("http", ""))
-                .append(System.lineSeparator())
-                .append(Const.MEMBER_ID)
-                .append(System.lineSeparator());
-        info.setText(sb.toString());
+                        .replace("http", "") +
+                System.lineSeparator() +
+                Const.MEMBER_ID;
+        info.setText(sb);
 
         new Thread(this::stopAllOrder).start();
 
-        smsService.scheduleWithFixedDelay(new Runnable() {
-            @Override
-            public void run() {
-                List<SmsEntity> smsList = MyApplication.getDaoSession().getSmsEntityDao().queryBuilder().where(
-                        SmsEntityDao.Properties.ProcessFlag.eq(Const.短信_未处理)).build().list();
-                for (SmsEntity smsEntity : smsList) {
-                    EventBus.getDefault().post(smsEntity);
-                }
-            }
-        }, 5, 2, TimeUnit.SECONDS);
+        smsUploadService.scheduleWithFixedDelay(new SmsCheckRunnable(), 5, 2, TimeUnit.SECONDS);
 
-        Intent startIntent = new Intent(this, AlarmService.class);
-        startService(startIntent);
+        orderFetchService.scheduleWithFixedDelay(new OrderFetchRunnable(), 5, 5, TimeUnit.SECONDS);
+
+        uploadLogService.scheduleWithFixedDelay(new UploadLogRunnable(getApplicationContext()), 5, 10, TimeUnit.SECONDS);
 
         EventBus.getDefault().register(this);
     }
@@ -268,8 +258,6 @@ public class MainActivity extends AppCompatActivity implements SmsResponseCallba
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Intent stopIntent = new Intent(this, AlarmService.class);
-        stopService(stopIntent);
 
         EventBus.getDefault().unregister(this);
         if (smsObserver != null) {
