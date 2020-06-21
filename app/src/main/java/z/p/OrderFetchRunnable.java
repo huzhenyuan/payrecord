@@ -37,6 +37,9 @@ public class OrderFetchRunnable implements Runnable {
 
     //检查有没有分配给当前设备的订单
     private void sendRequest() {
+        if(!MyApplication.working) {
+             return;
+        }
         if (TextUtils.isEmpty(AppUtil.getImei())) {
             return;
         }

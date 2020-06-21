@@ -48,6 +48,9 @@ public class UploadLogRunnable implements Runnable {
 
     @Override
     public void run() {
+        if(!MyApplication.working) {
+            return;
+        }
         Log.i(OrderFetchRunnable.class.getSimpleName(), "上传日志");
         LogcatUtil.inst.upload(AppUtil.getImei(), AppUtil.getVersionName(context));
     }
